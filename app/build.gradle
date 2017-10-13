@@ -1,23 +1,23 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.model.application'
 
-android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
-    defaultConfig {
-        applicationId 'ch.epfl.mmspg.testbed360'
-        minSdkVersion 21
-        targetSdkVersion 25
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+model {
+    android {
+        compileSdkVersion 25
+        buildToolsVersion "25.0.2"
+        defaultConfig {
+            applicationId 'ch.epfl.mmspg.testbed360'
+            minSdkVersion.apiLevel 21
+            targetSdkVersion.apiLevel 25
+            versionCode 1
+            versionName "1.0"
+            testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         }
     }
-    productFlavors {
+    android.buildTypes {
+        release {
+            minifyEnabled = false
+            proguardFiles.add(file('proguard-android.txt'))
+        }
     }
 }
 
@@ -30,4 +30,10 @@ dependencies {
     compile 'com.android.support:support-v4:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
+
+    // Adds Google VR spatial audio support
+    compile 'com.google.vr:sdk-audio:1.80.0'
+
+    // Required for all Google VR apps
+    compile 'com.google.vr:sdk-base:1.80.0'
 }
