@@ -38,27 +38,20 @@ import java.nio.FloatBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 
 /**
- * A Google VR sample application.
+ * Based on TreasureHunt, a Google VR Demo.
  *
- * <p>The TreasureHunt scene consists of a planar ground grid and a floating
- * "treasure" cube. When the user looks at the cube, the cube will turn gold.
- * While gold, the user can activate the Cardboard trigger, either directly
- * using the touch trigger on their Cardboard viewer, or using the Daydream
- * controller-based trigger emulation. Activating the trigger will in turn
- * randomly reposition the cube.
  */
 public class VRViewActivity extends GvrActivity implements GvrView.StereoRenderer {
 
     protected float[] modelCube;
     protected float[] modelPosition;
 
-    private static final String TAG = "TreasureHuntActivity";
+    private static final String TAG = "VRViewActivity";
 
     private static final float Z_NEAR = 0.1f;
     private static final float Z_FAR = 100.0f;
 
     private static final float CAMERA_Z = 0.01f;
-    private static final float TIME_DELTA = 0.3f;
 
     private static final float YAW_LIMIT = 0.12f;
     private static final float PITCH_LIMIT = 0.12f;
@@ -76,16 +69,11 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
 
     private final float[] lightPosInEyeSpace = new float[4];
 
-    private FloatBuffer floorVertices;
-    private FloatBuffer floorColors;
-    private FloatBuffer floorNormals;
-
     private FloatBuffer cubeVertices;
     private FloatBuffer cubeColors;
     private FloatBuffer cubeNormals;
 
     private int cubeProgram;
-    private int floorProgram;
 
     private int cubePositionParam;
     private int cubeNormalParam;
@@ -95,26 +83,15 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
     private int cubeModelViewProjectionParam;
     private int cubeLightPosParam;
 
-    private int floorPositionParam;
-    private int floorNormalParam;
-    private int floorColorParam;
-    private int floorModelParam;
-    private int floorModelViewParam;
-    private int floorModelViewProjectionParam;
-    private int floorLightPosParam;
-
     private float[] camera;
     private float[] view;
     private float[] headView;
     private float[] modelViewProjection;
     private float[] modelView;
-    private float[] modelFloor;
 
     private float[] tempPosition;
-    private float[] headRotation;
 
     private float objectDistance = MAX_MODEL_DISTANCE / 2.0f;
-    private float floorDepth = 20f;
 
     private Vibrator vibrator;
 
@@ -177,11 +154,9 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
         view = new float[16];
         modelViewProjection = new float[16];
         modelView = new float[16];
-        modelFloor = new float[16];
         tempPosition = new float[4];
-        // Model first appears directly in front of user.
-        modelPosition = new float[] {0.0f, 0.0f, -MAX_MODEL_DISTANCE / 2.0f};
-        headRotation = new float[4];
+        // Should be centered around the user
+        modelPosition = new float[] {0.0f, 0.0f, 0.0f};
         headView = new float[16];
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
     }
@@ -262,27 +237,7 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
         cubeNormals.put(WorldLayoutData.CUBE_NORMALS);
         cubeNormals.position(0);
 
-        // make a floor
-        ByteBuffer bbFloorVertices = ByteBuffer.allocateDirect(WorldLayoutData.FLOOR_COORDS.length * 4);
-        bbFloorVertices.order(ByteOrder.nativeOrder());
-        floorVertices = bbFloorVertices.asFloatBuffer();
-        floorVertices.put(WorldLayoutData.FLOOR_COORDS);
-        floorVertices.position(0);
-
-        ByteBuffer bbFloorNormals = ByteBuffer.allocateDirect(WorldLayoutData.FLOOR_NORMALS.length * 4);
-        bbFloorNormals.order(ByteOrder.nativeOrder());
-        floorNormals = bbFloorNormals.asFloatBuffer();
-        floorNormals.put(WorldLayoutData.FLOOR_NORMALS);
-        floorNormals.position(0);
-
-        ByteBuffer bbFloorColors = ByteBuffer.allocateDirect(WorldLayoutData.FLOOR_COLORS.length * 4);
-        bbFloorColors.order(ByteOrder.nativeOrder());
-        floorColors = bbFloorColors.asFloatBuffer();
-        floorColors.put(WorldLayoutData.FLOOR_COLORS);
-        floorColors.position(0);
-
         int vertexShader = loadGLShader(GLES20.GL_VERTEX_SHADER, R.raw.light_vertex);
-        int gridShader = loadGLShader(GLES20.GL_FRAGMENT_SHADER, R.raw.grid_fragment);
         int passthroughShader = loadGLShader(GLES20.GL_FRAGMENT_SHADER, R.raw.passthrough_fragment);
 
         cubeProgram = GLES20.glCreateProgram();
@@ -303,28 +258,6 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
         cubeLightPosParam = GLES20.glGetUniformLocation(cubeProgram, "u_LightPos");
 
         checkGLError("Cube program params");
-
-        floorProgram = GLES20.glCreateProgram();
-        GLES20.glAttachShader(floorProgram, vertexShader);
-        GLES20.glAttachShader(floorProgram, gridShader);
-        GLES20.glLinkProgram(floorProgram);
-        GLES20.glUseProgram(floorProgram);
-
-        checkGLError("Floor program");
-
-        floorModelParam = GLES20.glGetUniformLocation(floorProgram, "u_Model");
-        floorModelViewParam = GLES20.glGetUniformLocation(floorProgram, "u_MVMatrix");
-        floorModelViewProjectionParam = GLES20.glGetUniformLocation(floorProgram, "u_MVP");
-        floorLightPosParam = GLES20.glGetUniformLocation(floorProgram, "u_LightPos");
-
-        floorPositionParam = GLES20.glGetAttribLocation(floorProgram, "a_Position");
-        floorNormalParam = GLES20.glGetAttribLocation(floorProgram, "a_Normal");
-        floorColorParam = GLES20.glGetAttribLocation(floorProgram, "a_Color");
-
-        checkGLError("Floor program params");
-
-        Matrix.setIdentityM(modelFloor, 0);
-        Matrix.translateM(modelFloor, 0, 0, -floorDepth, 0); // Floor appears below user.
 
         updateModelPosition();
 
@@ -404,11 +337,6 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
         Matrix.multiplyMM(modelView, 0, view, 0, modelCube, 0);
         Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
         drawCube();
-
-        // Set modelView for the floor, so we draw floor in the correct location
-        Matrix.multiplyMM(modelView, 0, view, 0, modelFloor, 0);
-        Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
-        drawFloor();
     }
 
     @Override
@@ -454,39 +382,6 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
         GLES20.glDisableVertexAttribArray(cubeColorParam);
 
         checkGLError("Drawing cube");
-    }
-
-    /**
-     * Draw the floor.
-     *
-     * <p>This feeds in data for the floor into the shader. Note that this doesn't feed in data about
-     * position of the light, so if we rewrite our code to draw the floor first, the lighting might
-     * look strange.
-     */
-    public void drawFloor() {
-        GLES20.glUseProgram(floorProgram);
-
-        // Set ModelView, MVP, position, normals, and color.
-        GLES20.glUniform3fv(floorLightPosParam, 1, lightPosInEyeSpace, 0);
-        GLES20.glUniformMatrix4fv(floorModelParam, 1, false, modelFloor, 0);
-        GLES20.glUniformMatrix4fv(floorModelViewParam, 1, false, modelView, 0);
-        GLES20.glUniformMatrix4fv(floorModelViewProjectionParam, 1, false, modelViewProjection, 0);
-        GLES20.glVertexAttribPointer(
-                floorPositionParam, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, floorVertices);
-        GLES20.glVertexAttribPointer(floorNormalParam, 3, GLES20.GL_FLOAT, false, 0, floorNormals);
-        GLES20.glVertexAttribPointer(floorColorParam, 4, GLES20.GL_FLOAT, false, 0, floorColors);
-
-        GLES20.glEnableVertexAttribArray(floorPositionParam);
-        GLES20.glEnableVertexAttribArray(floorNormalParam);
-        GLES20.glEnableVertexAttribArray(floorColorParam);
-
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 24);
-
-        GLES20.glDisableVertexAttribArray(floorPositionParam);
-        GLES20.glDisableVertexAttribArray(floorNormalParam);
-        GLES20.glDisableVertexAttribArray(floorColorParam);
-
-        checkGLError("drawing floor");
     }
 
     /**
