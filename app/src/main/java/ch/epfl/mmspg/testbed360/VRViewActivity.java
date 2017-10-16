@@ -22,29 +22,35 @@ import android.opengl.Matrix;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.util.Log;
+
 import com.google.vr.sdk.base.AndroidCompat;
 import com.google.vr.sdk.base.Eye;
 import com.google.vr.sdk.base.GvrActivity;
 import com.google.vr.sdk.base.GvrView;
 import com.google.vr.sdk.base.HeadTransform;
 import com.google.vr.sdk.base.Viewport;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.CharBuffer;
 import java.nio.FloatBuffer;
+
 import javax.microedition.khronos.egl.EGLConfig;
 
 /**
  * Based on TreasureHunt, a Google VR Demo.
- *
  */
 public class VRViewActivity extends GvrActivity implements GvrView.StereoRenderer {
 
     protected float[] modelCube;
-    protected float[] modelPosition;
+    protected float[] modelCubePosition;
+
+    protected float[] modelSphere;
+    protected float[] modelSpherePosition;
 
     private static final String TAG = "VRViewActivity";
 
@@ -59,7 +65,7 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
     private static final int COORDS_PER_VERTEX = 3;
 
     // We keep the light always position just above the user.
-    private static final float[] LIGHT_POS_IN_WORLD_SPACE = new float[] {0.0f, 2.0f, 0.0f, 1.0f};
+    private static final float[] LIGHT_POS_IN_WORLD_SPACE = new float[]{0.0f, 2.0f, 0.0f, 1.0f};
 
     // Convenience vector for extracting the position from a matrix via multiplication.
     private static final float[] POS_MATRIX_MULTIPLY_VEC = {0, 0, 0, 1.0f};
@@ -69,11 +75,17 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
 
     private final float[] lightPosInEyeSpace = new float[4];
 
-    private FloatBuffer cubeVertices;
-    private FloatBuffer cubeColors;
-    private FloatBuffer cubeNormals;
+    private FloatBuffer cubeVerticesBuffer;
+    private FloatBuffer cubeColorsBuffer;
+    private FloatBuffer cubeNormalsBuffer;
+
+    private FloatBuffer sphereVerticesBuffer;
+    private FloatBuffer sphereTextureBuffer;
+    private FloatBuffer sphereNormalsBuffer;
+    private CharBuffer sphereIndexesBuffer;
 
     private int cubeProgram;
+    private int sphereProgram;
 
     private int cubePositionParam;
     private int cubeNormalParam;
@@ -82,6 +94,14 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
     private int cubeModelViewParam;
     private int cubeModelViewProjectionParam;
     private int cubeLightPosParam;
+
+    private int spherePositionParam;
+    private int sphereNormalParam;
+    private int sphereColorParam;
+    private int sphereModelParam;
+    private int sphereModelViewParam;
+    private int sphereModelViewProjectionParam;
+    private int sphereLightPosParam;
 
     private float[] camera;
     private float[] view;
@@ -95,10 +115,12 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
 
     private Vibrator vibrator;
 
+    private boolean drawSphere = false;
+
     /**
      * Converts a raw text file, saved as a resource, into an OpenGL ES shader.
      *
-     * @param type The type of shader we will be creating.
+     * @param type  The type of shader we will be creating.
      * @param resId The resource ID of the raw text file about to be turned into a shader.
      * @return The shader object handler.
      */
@@ -149,14 +171,18 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
 
         initializeGvrView();
 
+        WorldLayoutData.initSphereData();
+
         modelCube = new float[16];
+        modelSphere = new float[16];
         camera = new float[16];
         view = new float[16];
         modelViewProjection = new float[16];
         modelView = new float[16];
         tempPosition = new float[4];
         // Should be centered around the user
-        modelPosition = new float[] {0.0f, 0.0f, 0.0f};
+        modelCubePosition = new float[]{0.0f, 0.0f, 0.0f};
+        modelSpherePosition = new float[]{0.0f, 0.0f, 0.0f};
         headView = new float[16];
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
     }
@@ -208,7 +234,7 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
 
     /**
      * Creates the buffers we use to store information about the 3D world.
-     *
+     * <p>
      * <p>OpenGL doesn't use Java arrays, but rather needs data in a format it can understand.
      * Hence we use ByteBuffers.
      *
@@ -217,25 +243,27 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
     @Override
     public void onSurfaceCreated(EGLConfig config) {
         Log.i(TAG, "onSurfaceCreated");
-        GLES20.glClearColor(0.1f, 0.1f, 0.1f, 0.5f); // Dark background so text shows up well.
+        GLES20.glClearColor(0.5f, 0.5f, 1f, 0.5f); // Dark background so text shows up well.
 
-        ByteBuffer bbVertices = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_COORDS.length * 4);
-        bbVertices.order(ByteOrder.nativeOrder());
-        cubeVertices = bbVertices.asFloatBuffer();
-        cubeVertices.put(WorldLayoutData.CUBE_COORDS);
-        cubeVertices.position(0);
 
-        ByteBuffer bbColors = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_COLORS.length * 4);
-        bbColors.order(ByteOrder.nativeOrder());
-        cubeColors = bbColors.asFloatBuffer();
-        cubeColors.put(WorldLayoutData.CUBE_COLORS);
-        cubeColors.position(0);
+        /********CUBE********/
+        cubeVerticesBuffer = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_COORDS.length * 4)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer();
+        cubeVerticesBuffer.put(WorldLayoutData.CUBE_COORDS);
+        cubeVerticesBuffer.position(0);
 
-        ByteBuffer bbNormals = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_NORMALS.length * 4);
-        bbNormals.order(ByteOrder.nativeOrder());
-        cubeNormals = bbNormals.asFloatBuffer();
-        cubeNormals.put(WorldLayoutData.CUBE_NORMALS);
-        cubeNormals.position(0);
+        cubeColorsBuffer = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_COLORS.length * 4)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer();
+        cubeColorsBuffer.put(WorldLayoutData.CUBE_COLORS);
+        cubeColorsBuffer.position(0);
+
+        cubeNormalsBuffer = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_NORMALS.length * 4)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer();
+        cubeNormalsBuffer.put(WorldLayoutData.CUBE_NORMALS);
+        cubeNormalsBuffer.position(0);
 
         int vertexShader = loadGLShader(GLES20.GL_VERTEX_SHADER, R.raw.light_vertex);
         int passthroughShader = loadGLShader(GLES20.GL_FRAGMENT_SHADER, R.raw.passthrough_fragment);
@@ -259,20 +287,74 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
 
         checkGLError("Cube program params");
 
-        updateModelPosition();
+        /********SPHERE********/
+        sphereVerticesBuffer = ByteBuffer.allocateDirect(WorldLayoutData.SPHERE_VERTICES.length * 4)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer();
+        sphereVerticesBuffer.put(WorldLayoutData.SPHERE_VERTICES).position(0);
 
+        sphereIndexesBuffer = ByteBuffer.allocateDirect(WorldLayoutData.SPHERE_INDEXES.length * 4)
+                .order(ByteOrder.nativeOrder())
+                .asCharBuffer();
+        sphereIndexesBuffer.put(WorldLayoutData.SPHERE_INDEXES).position(0);
+
+        sphereTextureBuffer = ByteBuffer.allocateDirect(WorldLayoutData.SPHERE_TEXTURE.length * 4)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer();
+        sphereTextureBuffer.put(WorldLayoutData.SPHERE_TEXTURE).position(0);
+
+        sphereNormalsBuffer = ByteBuffer.allocateDirect(WorldLayoutData.SPHERE_NORMALS.length * 4)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer();
+        sphereNormalsBuffer.put(WorldLayoutData.SPHERE_NORMALS).position(0);
+
+        sphereProgram = GLES20.glCreateProgram();
+        GLES20.glAttachShader(sphereProgram, vertexShader);
+        GLES20.glAttachShader(sphereProgram, passthroughShader);
+        GLES20.glLinkProgram(sphereProgram);
+        GLES20.glUseProgram(sphereProgram);
+
+        checkGLError("Sphere program");
+
+        spherePositionParam = GLES20.glGetAttribLocation(sphereProgram, "a_Position");
+        sphereNormalParam = GLES20.glGetAttribLocation(sphereProgram, "a_Normal");
+        cubeColorParam = GLES20.glGetAttribLocation(sphereProgram, "a_Color");
+
+        sphereModelParam = GLES20.glGetUniformLocation(sphereProgram, "u_Model");
+        sphereModelViewParam = GLES20.glGetUniformLocation(sphereProgram, "u_MVMatrix");
+        sphereModelViewProjectionParam = GLES20.glGetUniformLocation(sphereProgram, "u_MVP");
+        sphereLightPosParam = GLES20.glGetUniformLocation(sphereProgram, "u_LightPos");
+
+        checkGLError("Sphere program params");
+
+        updateCubeModelPosition();
         checkGLError("onSurfaceCreated");
+
+        updateSphereModelPosition();
+        checkGLError("onSurfaceCreated");
+
     }
 
     /**
      * Updates the cube model position.
      */
-    protected void updateModelPosition() {
+    protected void updateCubeModelPosition() {
         Matrix.setIdentityM(modelCube, 0);
-        Matrix.translateM(modelCube, 0, modelPosition[0], modelPosition[1], modelPosition[2]);
+        Matrix.translateM(modelCube, 0, modelCubePosition[0], modelCubePosition[1], modelCubePosition[2]);
         Matrix.scaleM(modelCube, 0, 4f, 4f, 4f);
 
         checkGLError("updateCubePosition");
+    }
+
+    /**
+     * Updates the sphere model position.
+     */
+    protected void updateSphereModelPosition() {
+        Matrix.setIdentityM(modelSphere, 0);
+        Matrix.translateM(modelSphere, 0, modelSpherePosition[0], modelSpherePosition[1], modelSpherePosition[2]);
+        Matrix.scaleM(modelSphere, 0, 4f, 4f, 4f);
+
+        checkGLError("updateSpherePosition");
     }
 
     /**
@@ -332,20 +414,26 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
         Matrix.multiplyMV(lightPosInEyeSpace, 0, view, 0, LIGHT_POS_IN_WORLD_SPACE, 0);
 
         // Build the ModelView and ModelViewProjection matrices
-        // for calculating cube position and light.
+        // for calculating cube and sphere position and light.
         float[] perspective = eye.getPerspective(Z_NEAR, Z_FAR);
         Matrix.multiplyMM(modelView, 0, view, 0, modelCube, 0);
+        Matrix.multiplyMM(modelView, 0, view, 0, modelSphere, 0);
         Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
-        drawCube();
+
+        if(drawSphere){
+            drawSphere();
+        }else {
+            drawCube();
+        }
     }
 
     @Override
-    public void onFinishFrame(Viewport viewport) {}
+    public void onFinishFrame(Viewport viewport) {
+    }
 
     /**
      * Draw the cube.
-     *
-     * <p>We've set all of our transformation matrices. Now we simply pass them into the shader.
+     * We've set all of our transformation matrices. Now we simply pass them into the shader.
      */
     public void drawCube() {
         GLES20.glUseProgram(cubeProgram);
@@ -360,14 +448,14 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
 
         // Set the position of the cube
         GLES20.glVertexAttribPointer(
-                cubePositionParam, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, cubeVertices);
+                cubePositionParam, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, cubeVerticesBuffer);
 
         // Set the ModelViewProjection matrix in the shader.
         GLES20.glUniformMatrix4fv(cubeModelViewProjectionParam, 1, false, modelViewProjection, 0);
 
         // Set the normal positions of the cube, again for shading
-        GLES20.glVertexAttribPointer(cubeNormalParam, 3, GLES20.GL_FLOAT, false, 0, cubeNormals);
-        GLES20.glVertexAttribPointer(cubeColorParam, 4, GLES20.GL_FLOAT, false, 0, cubeColors);
+        GLES20.glVertexAttribPointer(cubeNormalParam, 3, GLES20.GL_FLOAT, false, 0, cubeNormalsBuffer);
+        GLES20.glVertexAttribPointer(cubeColorParam, 4, GLES20.GL_FLOAT, false, 0, cubeColorsBuffer);
 
         // Enable vertex arrays
         GLES20.glEnableVertexAttribArray(cubePositionParam);
@@ -385,6 +473,47 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
     }
 
     /**
+     * Draws the sphere.
+     * We've set all of our transformation matrices. Now we simply pass them into the shader.
+     */
+    public void drawSphere() {
+        GLES20.glUseProgram(sphereProgram);
+
+        GLES20.glUniform3fv(sphereLightPosParam, 1, lightPosInEyeSpace, 0);
+
+        // Set the Model in the shader, used to calculate lighting
+        GLES20.glUniformMatrix4fv(sphereModelParam, 1, false, modelSphere, 0);
+
+        // Set the ModelView in the shader, used to calculate lighting
+        GLES20.glUniformMatrix4fv(sphereModelViewParam, 1, false, modelView, 0);
+
+        // Set the position of the sphere
+        GLES20.glVertexAttribPointer(
+                spherePositionParam, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, sphereVerticesBuffer);
+
+        // Set the ModelViewProjection matrix in the shader.
+        GLES20.glUniformMatrix4fv(sphereModelViewProjectionParam, 1, false, modelViewProjection, 0);
+
+        // Set the normal positions of the sphere, again for shading
+        GLES20.glVertexAttribPointer(sphereNormalParam, 3, GLES20.GL_FLOAT, false, 0, sphereNormalsBuffer);
+        GLES20.glVertexAttribPointer(sphereColorParam, 4, GLES20.GL_FLOAT, false, 0, sphereTextureBuffer);
+
+        // Enable vertex arrays
+        GLES20.glEnableVertexAttribArray(spherePositionParam);
+        GLES20.glEnableVertexAttribArray(sphereNormalParam);
+        GLES20.glEnableVertexAttribArray(sphereColorParam);
+
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, (WorldLayoutData.SPHERE_RINGS_COUNT-1) * WorldLayoutData.SPHERE_SECTORS_PER_RING);
+
+        // Disable vertex arrays
+        GLES20.glDisableVertexAttribArray(spherePositionParam);
+        GLES20.glDisableVertexAttribArray(sphereNormalParam);
+        GLES20.glDisableVertexAttribArray(sphereColorParam);
+
+        checkGLError("Drawing sphere");
+    }
+
+    /**
      * Called when the Cardboard trigger is pulled.
      */
     @Override
@@ -393,11 +522,12 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
 
         // Always give user feedback.
         vibrator.vibrate(50);
+        drawSphere = !drawSphere;
     }
 
     /**
      * Find a new random position for the object.
-     *
+     * <p>
      * <p>We'll rotate it around the Y-axis so it's out of sight, and then up or down by a little bit.
      */
     protected void hideObject() {
@@ -419,11 +549,11 @@ public class VRViewActivity extends GvrActivity implements GvrView.StereoRendere
         angleY = (float) Math.toRadians(angleY);
         float newY = (float) Math.tan(angleY) * objectDistance;
 
-        modelPosition[0] = posVec[0];
-        modelPosition[1] = newY;
-        modelPosition[2] = posVec[2];
+        modelCubePosition[0] = posVec[0];
+        modelCubePosition[1] = newY;
+        modelCubePosition[2] = posVec[2];
 
-        updateModelPosition();
+        updateCubeModelPosition();
     }
 
     /**
