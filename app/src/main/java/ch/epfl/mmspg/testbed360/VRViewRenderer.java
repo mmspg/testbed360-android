@@ -4,21 +4,22 @@ import android.content.Context;
 import android.graphics.Color;
 import android.view.MotionEvent;
 
-import org.rajawali3d.Object3D;
-import org.rajawali3d.animation.Animation.RepeatMode;
-import org.rajawali3d.animation.SplineTranslateAnimation3D;
-import org.rajawali3d.curves.CatmullRomCurve3D;
-import org.rajawali3d.lights.DirectionalLight;
-import org.rajawali3d.loader.LoaderAWD;
+import com.google.vrtoolkit.cardboard.Eye;
+import com.google.vrtoolkit.cardboard.HeadTransform;
+
 import org.rajawali3d.materials.Material;
-import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.materials.textures.Texture;
+import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Sphere;
+import org.rajawali3d.vr.renderer.VRRenderer;
 
-public class VRViewRenderer extends org.rajawali3d.vr.renderer.VRRenderer {
+public class VRViewRenderer extends VRRenderer {
     private Sphere sphere;
+    double speed = 0.05;
+    double sphereRotation = 0;
+    private float[] mHeadView;
 
     public VRViewRenderer(Context context) {
         super(context);
@@ -26,14 +27,14 @@ public class VRViewRenderer extends org.rajawali3d.vr.renderer.VRRenderer {
 
     @Override
     public void initScene() {
-        Sphere sphere = createPhotoSphereWithTexture(new Texture("photo", R.drawable.jvet_kiteflite_equirec_3000x1500_raw_q00));
+        sphere = createPhotoSphereWithTexture(new Texture("photo", R.drawable.jvet_kiteflite_equirec_3000x1500_raw_q00));
+        mHeadView = new float[16];
 
         getCurrentScene().addChild(sphere);
 
         getCurrentCamera().setPosition(Vector3.ZERO);
         getCurrentCamera().setFieldOfView(100);
         getCurrentCamera().resetCameraOrientation();
-
     }
 
     private static Sphere createPhotoSphereWithTexture(ATexture texture) {
@@ -48,22 +49,31 @@ public class VRViewRenderer extends org.rajawali3d.vr.renderer.VRRenderer {
         }
 
         Sphere sphere = new Sphere(50, 64, 32);
-        sphere.setScaleX(-1);
+        sphere.setScaleX(-1); //otherwise image is inverted
         sphere.setMaterial(material);
 
         return sphere;
     }
 
+
     @Override
-    public void onRender(long elapsedTime, double deltaTime) {
-        super.onRender(elapsedTime, deltaTime);
-        boolean isLookingAt = isLookingAtObject(sphere);
-        if(isLookingAt) {
-            sphere.setColor(Color.RED);
-        } else {
-            sphere.setColor(Color.YELLOW);
-        }
+    public void onDrawEye(Eye eye) {
+        getCurrentCamera().updatePerspective(
+                eye.getFov().getLeft(),
+                eye.getFov().getRight(),
+                eye.getFov().getBottom(),
+                eye.getFov().getTop());
+        mCurrentEyeMatrix.setAll(eye.getEyeView());
+        mCurrentEyeOrientation.fromMatrix(mCurrentEyeMatrix);
+
+        //the call to .inverse() here fixes the inverted orientation of the view
+        //see suggestion I made at https://github.com/Rajawali/Rajawali/issues/1935
+        getCurrentCamera().setOrientation(mCurrentEyeOrientation.inverse());
+        getCurrentCamera().setPosition(mCameraPosition);
+        getCurrentCamera().getPosition().add(mCurrentEyeMatrix.getTranslation().inverse());
+        super.onRenderFrame(null);
     }
+
 
     @Override
     public void onOffsetsChanged(float xOffset, float yOffset, float xOffsetStep, float yOffsetStep, int xPixelOffset,
@@ -71,7 +81,8 @@ public class VRViewRenderer extends org.rajawali3d.vr.renderer.VRRenderer {
 
     }
 
-    @Override public void onTouchEvent(MotionEvent event) {
+    @Override
+    public void onTouchEvent(MotionEvent event) {
 
     }
 }
