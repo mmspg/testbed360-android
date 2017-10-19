@@ -17,12 +17,14 @@
 package ch.epfl.mmspg.testbed360;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import org.rajawali3d.util.RajLog;
 import org.rajawali3d.vr.VRActivity;
 
 public class VRViewActivity extends VRActivity {
+    private final static String TAG = "VRViewActivity";
     private VRViewRenderer mRenderer;
 
     @Override
@@ -49,7 +51,12 @@ public class VRViewActivity extends VRActivity {
      */
     @Override
     public void onCardboardTrigger() {
-        RajLog.i("onCardboardTrigger");
+        Log.d(TAG,"Cardboard trigger");
+        if(mRenderer.getMode() == VRViewRenderer.MODE_EQUIRECTANGULAR){
+            mRenderer.setCubicMode();
+        }else if(mRenderer.getMode() == VRViewRenderer.MODE_CUBIC){
+            mRenderer.setEquirectangularMode();
+        }
     }
 
     @Override
