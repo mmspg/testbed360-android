@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
 import com.google.vrtoolkit.cardboard.Eye;
 
@@ -20,6 +21,9 @@ import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.vr.renderer.VRRenderer;
 
 public class VRViewRenderer extends VRRenderer {
+    //TODO remove this in production, only for debugging
+    private final static boolean ENABLE_TOASTS = true;
+
     private final static String TAG = "VRViewRenderer";
     protected final static int MODE_EQUIRECTANGULAR = 0;
     protected final static int MODE_CUBIC = 1;
@@ -45,13 +49,16 @@ public class VRViewRenderer extends VRRenderer {
 
         try {
             Material matBtn = new Material();
-            matBtn.setColorInfluence(0);
+            //matBtn.setColorInfluence(0);
+            matBtn.setColor(Color.YELLOW);
 
-            textPrism = new RectangularPrism(0.8f, 0.5f, 0);
+            textPrism = new RectangularPrism(0.8f, 0.5f, 0f);
             textPrism.setPosition(0, 0, 0);
+            textPrism.setBackSided(true);
             textPrism.setMaterial(matBtn);
             matBtn.addTexture(new Texture("download", textAsBitmap("This is a test",10,Color.WHITE)));
             textPrism.rotate(Vector3.Axis.Y, 180);
+            textPrism.setVisible(true);
             getCurrentScene().addChild(textPrism);
 
         } catch (ATexture.TextureException e) {
@@ -59,8 +66,7 @@ public class VRViewRenderer extends VRRenderer {
         }
 
         getCurrentCamera().setPosition(Vector3.ZERO);
-        getCurrentCamera().setFieldOfView(100);
-        getCurrentCamera().resetCameraOrientation();
+        getCurrentCamera().setFieldOfView(75);
     }
 
     private static Sphere createPhotoSphereWithTexture(ATexture texture) {
@@ -122,6 +128,11 @@ public class VRViewRenderer extends VRRenderer {
      */
     public void setCubicMode(){
         Log.i(TAG,"Changing mode to : CUBIC_MODE");
+
+        if(ENABLE_TOASTS) {
+            Toast.makeText(getContext(), "Cubic", Toast.LENGTH_SHORT).show();
+        }
+
         mode = MODE_CUBIC;
         sphere.setVisible(false);
 
@@ -140,6 +151,11 @@ public class VRViewRenderer extends VRRenderer {
      */
     public void setEquirectangularMode(){
         Log.i(TAG,"Changing mode to : EQUIRECTANGULAR");
+
+        if(ENABLE_TOASTS) {
+            Toast.makeText(getContext(), "Equirectangular", Toast.LENGTH_SHORT).show();
+        }
+
         mode = MODE_EQUIRECTANGULAR;
         sphere.setVisible(true);
     }
