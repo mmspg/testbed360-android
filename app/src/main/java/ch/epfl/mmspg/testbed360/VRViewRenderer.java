@@ -16,9 +16,12 @@ import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.materials.textures.Texture;
 import org.rajawali3d.math.vector.Vector3;
+import org.rajawali3d.primitives.Line3D;
 import org.rajawali3d.primitives.RectangularPrism;
 import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.vr.renderer.VRRenderer;
+
+import java.util.Stack;
 
 public class VRViewRenderer extends VRRenderer {
     //TODO remove this in production, only for debugging
@@ -30,10 +33,12 @@ public class VRViewRenderer extends VRRenderer {
 
     private int mode = MODE_EQUIRECTANGULAR;
     private Sphere sphere;
-    private RectangularPrism textPrism;
 
     private Vibrator vibrator;
-    private boolean vibrates = false;
+
+    private RectangularPrism textPrism;
+    private ATexture currentTextTexture;
+    private Material textPrismMaterial;
 
     public VRViewRenderer(Context context) {
         super(context);
@@ -44,6 +49,10 @@ public class VRViewRenderer extends VRRenderer {
     public void initScene() {
         sphere = createPhotoSphereWithTexture(new Texture("photo", R.drawable.jvet_kiteflite_equirec_3000x1500_raw_q00));
         getCurrentScene().addChild(sphere);
+        getCurrentScene().addChild(createXAxis());
+        getCurrentScene().addChild(createYAxis());
+        getCurrentScene().addChild(createZAxis());
+
         try {
             getCurrentScene().setSkybox(R.drawable.jvet_kiteflite_cmp_3000x2250_raw_q00);
         } catch (ATexture.TextureException e) {
@@ -51,24 +60,21 @@ public class VRViewRenderer extends VRRenderer {
             e.printStackTrace();
         }
 
-        try {
-            Material matBtn = new Material();
-            //matBtn.setColorInfluence(0);
-            matBtn.setColor(Color.YELLOW);
+        textPrismMaterial = new Material();
+        textPrismMaterial.setColorInfluence(0);
 
-            textPrism = new RectangularPrism(0.8f, 0.5f, 0f);
-            textPrism.setPosition(0.05, 0.05, 0.05);
-            textPrism.setMaterial(matBtn);
-            matBtn.addTexture(new Texture("download", textAsBitmap("This is a test", 10, Color.WHITE)));
-            textPrism.setVisible(true);
-            getCurrentScene().addChild(textPrism);
+        textPrism = new RectangularPrism(10f, 5f, 0.4f);
+        textPrism.setPosition(0, 0, -10);
+        textPrism.setMaterial(textPrismMaterial);
+        textPrism.setVisible(true);
+        textPrism.rotate(Vector3.Axis.Y,180);
 
-        } catch (ATexture.TextureException e) {
-            throw new RuntimeException(e);
-        }
+        getCurrentScene().addChild(textPrism);
 
         getCurrentCamera().setPosition(Vector3.ZERO);
         getCurrentCamera().setFieldOfView(100);
+
+        setText("Equirectangular");
     }
 
     private static Sphere createPhotoSphereWithTexture(ATexture texture) {
@@ -106,14 +112,6 @@ public class VRViewRenderer extends VRRenderer {
         getCurrentCamera().setPosition(mCameraPosition);
         getCurrentCamera().getPosition().add(mCurrentEyeMatrix.getTranslation().inverse());
 
-        boolean lookingAtCube = isLookingAtObject(textPrism);
-        if (!vibrates && lookingAtCube) {
-            vibrates = true;
-            vibrator.vibrate(100);
-        } else if (!lookingAtCube) {
-            vibrates = false;
-        }
-
         super.onRenderFrame(null);
     }
 
@@ -138,7 +136,7 @@ public class VRViewRenderer extends VRRenderer {
      * the sphere as invisible
      */
     public void setCubicMode() {
-        vibrator.vibrate(100);
+        vibrator.vibrate(50);
         Log.i(TAG, "Changing mode to : CUBIC_MODE");
 
         if (ENABLE_TOASTS) {
@@ -150,6 +148,7 @@ public class VRViewRenderer extends VRRenderer {
 
         try {
             getCurrentScene().updateSkybox(R.drawable.jvet_kiteflite_cmp_3000x2250_raw_q00);
+            setText("Cubic");
         } catch (Exception e) {
             Log.e(TAG, "Error updating the skybox texture");
             e.printStackTrace();
@@ -162,7 +161,7 @@ public class VRViewRenderer extends VRRenderer {
      * the sphere as visible
      */
     public void setEquirectangularMode() {
-        vibrator.vibrate(100);
+        vibrator.vibrate(50);
         Log.i(TAG, "Changing mode to : EQUIRECTANGULAR");
 
         if (ENABLE_TOASTS) {
@@ -171,23 +170,73 @@ public class VRViewRenderer extends VRRenderer {
 
         mode = MODE_EQUIRECTANGULAR;
         sphere.setVisible(true);
+        setText("Equirectangular");
     }
 
     public int getMode() {
         return mode;
     }
 
-    public static Bitmap textAsBitmap(String text, float textSize, int color) {
-        Bitmap mBtnBitmap = Bitmap.createBitmap(128, 64, Bitmap.Config.ARGB_8888);
+    public void setText(String text){
+        if(textPrismMaterial != null && currentTextTexture != null){
+            textPrismMaterial.removeTexture(currentTextTexture);
+        }
+
+        try {
+            int color = Color.argb(150,55,55,55);
+            currentTextTexture = new Texture("text", textAsBitmap(text, 50, Color.WHITE, color));
+            textPrismMaterial.addTexture(currentTextTexture);
+        } catch (ATexture.TextureException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Bitmap textAsBitmap(String text, float textSize, int color, int bgColor) {
+        Bitmap mBtnBitmap = Bitmap.createBitmap(512, 256, Bitmap.Config.ARGB_8888);
         Canvas btnCanvas = new Canvas(mBtnBitmap);
         Paint btnPaint = new Paint();
+        btnPaint.setColor(bgColor);
+        btnPaint.setStyle(Paint.Style.FILL);
+        btnCanvas.drawRect(0, 0, 512, 512, btnPaint);
         btnPaint.setColor(color);
         btnPaint.setTextSize(textSize);
-        btnPaint.setStyle(Paint.Style.FILL);
-        btnCanvas.drawRect(0, 0, 128, 64, btnPaint);
-        btnPaint.setColor(Color.BLACK);
-        btnPaint.setTextSize(24);
         btnCanvas.drawText(text, 12, 40, btnPaint);
         return mBtnBitmap;
+    }
+
+    public static Line3D createXAxis(){
+        Stack<Vector3> points = new Stack<>();
+        points.add(Vector3.ZERO);
+        points.add(Vector3.X);
+
+        Line3D line = new Line3D(points,1f,Color.RED);
+        Material material = new Material();
+        material.setColor(Color.RED);
+        line.setMaterial(material);
+        return line;
+    }
+
+    public static Line3D createYAxis(){
+        Stack<Vector3> points = new Stack<>();
+        points.add(Vector3.ZERO);
+        points.add(Vector3.Y);
+
+        Line3D line = new Line3D(points,1f,Color.BLUE);
+        Material material = new Material();
+        material.setColor(Color.BLUE);
+        line.setMaterial(material);
+        return line;
+    }
+
+    public static Line3D createZAxis(){
+        Stack<Vector3> points = new Stack<>();
+        points.add(Vector3.ZERO);
+        points.add(Vector3.Z);
+
+        Line3D line = new Line3D(points,1f,Color.GREEN);
+        Material material = new Material();
+        material.setColor(Color.GREEN);
+        line.setMaterial(material);
+        return line;
     }
 }
