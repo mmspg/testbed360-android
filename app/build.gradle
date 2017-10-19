@@ -31,13 +31,6 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
 
-    // Adds Google VR spatial audio support
-    compile 'com.google.vr:sdk-audio:1.80.0'
-
-    // Required for all Google VR apps
-    compile 'com.google.vr:sdk-base:1.80.0'
-
-
-    compile 'com.google.vr:sdk-base:1.80.0'
-    compile 'com.google.vr:sdk-panowidget:1.80.0'
+    compile 'org.rajawali3d:rajawali:1.1.970'
+    compile 'org.rajawali3d:vr:1.1.970'
 }

@@ -43,6 +43,8 @@
             android:screenOrientation="landscape">
             <intent-filter>
                 <category android:name="com.google.intent.category.CARDBOARD" />
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
 
                 <!--
                      The DAYDREAM category should only be declared by Activities that are Daydream
@@ -50,14 +52,6 @@
                      controller APIs directly, however in this sample app we instead rely on
                      Cardboard trigger emulation.
                 -->
-                <category android:name="com.google.intent.category.DAYDREAM" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".EquirectangularActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="com.google.intent.category.DAYDREAM" />
             </intent-filter>
         </activity>
