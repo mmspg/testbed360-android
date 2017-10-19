@@ -3,6 +3,6 @@
 
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
-    <string name="gvr_vr_mode_component" translatable="false" description="Google VR component name used for enabling VR mode">com.google.vr.vrcore/com.google.vr.vrcore.common.VrCoreListenerService</string>
+    <string name="gvr_vr_mode_component" description="Google VR component name used for enabling VR mode" translatable="false">com.google.vr.vrcore/com.google.vr.vrcore.common.VrCoreListenerService</string>
 
 </resources>
