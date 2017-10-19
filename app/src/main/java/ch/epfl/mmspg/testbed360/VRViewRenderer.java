@@ -15,6 +15,7 @@ import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.materials.textures.Texture;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Plane;
+import org.rajawali3d.primitives.RectangularPrism;
 import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.vr.renderer.VRRenderer;
 
@@ -25,7 +26,7 @@ public class VRViewRenderer extends VRRenderer {
 
     private int mode = MODE_EQUIRECTANGULAR;
     private Sphere sphere;
-    private Plane textPlane;
+    private RectangularPrism textPrism;
 
     public VRViewRenderer(Context context) {
         super(context);
@@ -35,16 +36,27 @@ public class VRViewRenderer extends VRRenderer {
     public void initScene() {
         sphere = createPhotoSphereWithTexture(new Texture("photo", R.drawable.jvet_kiteflite_equirec_3000x1500_raw_q00));
         getCurrentScene().addChild(sphere);
-
-        textPlane = new Plane(10,20,10,20);
-        Material material = new Material();
-        material.setColor(0);
         try {
-            material.addTexture(new Texture("text",textAsBitmap("This is a test", 12, Color.BLACK)));
+            getCurrentScene().setSkybox(R.drawable.jvet_kiteflite_cmp_3000x2250_raw_q00);
+        } catch (ATexture.TextureException e) {
+            Log.e(TAG, "Error setting the skybox texture");
+            e.printStackTrace();
+        }
+
+        try {
+            Material matBtn = new Material();
+            matBtn.setColorInfluence(0);
+
+            textPrism = new RectangularPrism(0.8f, 0.5f, 0);
+            textPrism.setPosition(0, 0, 0);
+            textPrism.setMaterial(matBtn);
+            matBtn.addTexture(new Texture("download", textAsBitmap("This is a test",10,Color.WHITE)));
+            textPrism.rotate(Vector3.Axis.Y, 180);
+            getCurrentScene().addChild(textPrism);
+
         } catch (ATexture.TextureException e) {
             throw new RuntimeException(e);
         }
-        getCurrentScene().addChild(textPlane);
 
         getCurrentCamera().setPosition(Vector3.ZERO);
         getCurrentCamera().setFieldOfView(100);
@@ -114,9 +126,9 @@ public class VRViewRenderer extends VRRenderer {
         sphere.setVisible(false);
 
         try {
-            getCurrentScene().setSkybox(R.drawable.jvet_kiteflite_cmp_3000x2250_raw_q00);
-        } catch (ATexture.TextureException e) {
-            Log.e(TAG, "Error setting the skybox texture");
+            getCurrentScene().updateSkybox(R.drawable.jvet_kiteflite_cmp_3000x2250_raw_q00);
+        } catch (Exception e) {
+            Log.e(TAG, "Error updating the skybox texture");
             e.printStackTrace();
         }
     }
@@ -136,13 +148,17 @@ public class VRViewRenderer extends VRRenderer {
         return mode;
     }
 
-    public static Bitmap textAsBitmap(String text, int textsize, int color) {
-        Paint paint = new Paint();
-        paint.setTextSize(textsize);
-        paint.setColor(color);
-        Bitmap image = Bitmap.createBitmap(256, 256, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(image);
-        canvas.drawText(text, 30, 30, paint);
-        return image;
+    public static Bitmap textAsBitmap(String text, float textSize, int color) {
+        Bitmap mBtnBitmap = Bitmap.createBitmap(128, 64, Bitmap.Config.ARGB_8888);
+        Canvas btnCanvas = new Canvas(mBtnBitmap);
+        Paint btnPaint = new Paint();
+        btnPaint.setColor(color);
+        btnPaint.setTextSize(textSize);
+        btnPaint.setStyle(Paint.Style.FILL);
+        btnCanvas.drawRect(0,0,128,64, btnPaint);
+        btnPaint.setColor(Color.BLACK);
+        btnPaint.setTextSize(24);
+        btnCanvas.drawText(text, 12,40, btnPaint);
+        return mBtnBitmap;
     }
 }
