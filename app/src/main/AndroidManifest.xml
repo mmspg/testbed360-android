@@ -37,7 +37,6 @@
         <activity
             android:name=".VRViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:enableVrMode="@string/gvr_vr_mode_component"
             android:label="@string/app_name"
             android:resizeableActivity="false"
             android:screenOrientation="landscape">

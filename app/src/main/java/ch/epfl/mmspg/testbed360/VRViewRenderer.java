@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
@@ -15,7 +16,6 @@ import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.materials.textures.Texture;
 import org.rajawali3d.math.vector.Vector3;
-import org.rajawali3d.primitives.Plane;
 import org.rajawali3d.primitives.RectangularPrism;
 import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.vr.renderer.VRRenderer;
@@ -32,8 +32,12 @@ public class VRViewRenderer extends VRRenderer {
     private Sphere sphere;
     private RectangularPrism textPrism;
 
+    private Vibrator vibrator;
+    private boolean vibrates = false;
+
     public VRViewRenderer(Context context) {
         super(context);
+        vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
     }
 
     @Override
@@ -53,11 +57,9 @@ public class VRViewRenderer extends VRRenderer {
             matBtn.setColor(Color.YELLOW);
 
             textPrism = new RectangularPrism(0.8f, 0.5f, 0f);
-            textPrism.setPosition(0, 0, 0);
-            textPrism.setBackSided(true);
+            textPrism.setPosition(0.05, 0.05, 0.05);
             textPrism.setMaterial(matBtn);
-            matBtn.addTexture(new Texture("download", textAsBitmap("This is a test",10,Color.WHITE)));
-            textPrism.rotate(Vector3.Axis.Y, 180);
+            matBtn.addTexture(new Texture("download", textAsBitmap("This is a test", 10, Color.WHITE)));
             textPrism.setVisible(true);
             getCurrentScene().addChild(textPrism);
 
@@ -66,7 +68,7 @@ public class VRViewRenderer extends VRRenderer {
         }
 
         getCurrentCamera().setPosition(Vector3.ZERO);
-        getCurrentCamera().setFieldOfView(75);
+        getCurrentCamera().setFieldOfView(100);
     }
 
     private static Sphere createPhotoSphereWithTexture(ATexture texture) {
@@ -103,6 +105,15 @@ public class VRViewRenderer extends VRRenderer {
         getCurrentCamera().setOrientation(mCurrentEyeOrientation.inverse());
         getCurrentCamera().setPosition(mCameraPosition);
         getCurrentCamera().getPosition().add(mCurrentEyeMatrix.getTranslation().inverse());
+
+        boolean lookingAtCube = isLookingAtObject(textPrism);
+        if (!vibrates && lookingAtCube) {
+            vibrates = true;
+            vibrator.vibrate(100);
+        } else if (!lookingAtCube) {
+            vibrates = false;
+        }
+
         super.onRenderFrame(null);
     }
 
@@ -126,10 +137,11 @@ public class VRViewRenderer extends VRRenderer {
      * {@link VRViewRenderer#mode} value to {@link VRViewRenderer#MODE_CUBIC} and sets
      * the sphere as invisible
      */
-    public void setCubicMode(){
-        Log.i(TAG,"Changing mode to : CUBIC_MODE");
+    public void setCubicMode() {
+        vibrator.vibrate(100);
+        Log.i(TAG, "Changing mode to : CUBIC_MODE");
 
-        if(ENABLE_TOASTS) {
+        if (ENABLE_TOASTS) {
             Toast.makeText(getContext(), "Cubic", Toast.LENGTH_SHORT).show();
         }
 
@@ -149,10 +161,11 @@ public class VRViewRenderer extends VRRenderer {
      * {@link VRViewRenderer#mode} value to {@link VRViewRenderer#MODE_EQUIRECTANGULAR} and sets
      * the sphere as visible
      */
-    public void setEquirectangularMode(){
-        Log.i(TAG,"Changing mode to : EQUIRECTANGULAR");
+    public void setEquirectangularMode() {
+        vibrator.vibrate(100);
+        Log.i(TAG, "Changing mode to : EQUIRECTANGULAR");
 
-        if(ENABLE_TOASTS) {
+        if (ENABLE_TOASTS) {
             Toast.makeText(getContext(), "Equirectangular", Toast.LENGTH_SHORT).show();
         }
 
@@ -160,7 +173,7 @@ public class VRViewRenderer extends VRRenderer {
         sphere.setVisible(true);
     }
 
-    public int getMode(){
+    public int getMode() {
         return mode;
     }
 
@@ -171,10 +184,10 @@ public class VRViewRenderer extends VRRenderer {
         btnPaint.setColor(color);
         btnPaint.setTextSize(textSize);
         btnPaint.setStyle(Paint.Style.FILL);
-        btnCanvas.drawRect(0,0,128,64, btnPaint);
+        btnCanvas.drawRect(0, 0, 128, 64, btnPaint);
         btnPaint.setColor(Color.BLACK);
         btnPaint.setTextSize(24);
-        btnCanvas.drawText(text, 12,40, btnPaint);
+        btnCanvas.drawText(text, 12, 40, btnPaint);
         return mBtnBitmap;
     }
 }
