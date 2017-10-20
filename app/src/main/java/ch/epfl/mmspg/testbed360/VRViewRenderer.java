@@ -26,10 +26,11 @@ import java.util.Stack;
 public class VRViewRenderer extends VRRenderer {
     //TODO remove this in production, only for debugging
     private final static boolean ENABLE_TOASTS = true;
+    private final static boolean RENDER_AXIS = true;
 
     private final static String TAG = "VRViewRenderer";
-    protected final static int MODE_EQUIRECTANGULAR = 0;
-    protected final static int MODE_CUBIC = 1;
+    final static int MODE_EQUIRECTANGULAR = 0;
+    final static int MODE_CUBIC = 1;
 
     private int mode = MODE_EQUIRECTANGULAR;
     private Sphere sphere;
@@ -49,10 +50,13 @@ public class VRViewRenderer extends VRRenderer {
     public void initScene() {
         sphere = createPhotoSphereWithTexture(new Texture("photo", R.drawable.jvet_kiteflite_equirec_3000x1500_raw_q00));
         getCurrentScene().addChild(sphere);
-        getCurrentScene().addChild(createXAxis());
-        getCurrentScene().addChild(createYAxis());
-        getCurrentScene().addChild(createZAxis());
 
+        if(RENDER_AXIS) {
+            getCurrentScene().addChild(createLine(Vector3.ZERO, Vector3.X, Color.RED));
+            getCurrentScene().addChild(createLine(Vector3.ZERO, Vector3.Y, Color.GREEN));
+            getCurrentScene().addChild(createLine(Vector3.ZERO, Vector3.Z, Color.BLUE));
+        }
+        
         try {
             getCurrentScene().setSkybox(R.drawable.jvet_kiteflite_cmp_3000x2250_raw_q00);
         } catch (ATexture.TextureException e) {
@@ -135,7 +139,7 @@ public class VRViewRenderer extends VRRenderer {
      * {@link VRViewRenderer#mode} value to {@link VRViewRenderer#MODE_CUBIC} and sets
      * the sphere as invisible
      */
-    public void setCubicMode() {
+    void setCubicMode() {
         vibrator.vibrate(50);
         Log.i(TAG, "Changing mode to : CUBIC_MODE");
 
@@ -160,7 +164,7 @@ public class VRViewRenderer extends VRRenderer {
      * {@link VRViewRenderer#mode} value to {@link VRViewRenderer#MODE_EQUIRECTANGULAR} and sets
      * the sphere as visible
      */
-    public void setEquirectangularMode() {
+    void setEquirectangularMode() {
         vibrator.vibrate(50);
         Log.i(TAG, "Changing mode to : EQUIRECTANGULAR");
 
@@ -173,7 +177,7 @@ public class VRViewRenderer extends VRRenderer {
         setText("Equirectangular");
     }
 
-    public int getMode() {
+    int getMode() {
         return mode;
     }
 
@@ -191,7 +195,7 @@ public class VRViewRenderer extends VRRenderer {
         }
     }
 
-    public static Bitmap textAsBitmap(String text, float textSize, int color, int bgColor) {
+    private static Bitmap textAsBitmap(String text, float textSize, int color, int bgColor) {
         Bitmap mBtnBitmap = Bitmap.createBitmap(512, 256, Bitmap.Config.ARGB_8888);
         Canvas btnCanvas = new Canvas(mBtnBitmap);
         Paint btnPaint = new Paint();
@@ -204,38 +208,15 @@ public class VRViewRenderer extends VRRenderer {
         return mBtnBitmap;
     }
 
-    public static Line3D createXAxis(){
+    private static Line3D createLine(Vector3 p1, Vector3 p2, int color){
         Stack<Vector3> points = new Stack<>();
-        points.add(Vector3.ZERO);
-        points.add(Vector3.X);
+        points.add(p1);
+        points.add(p2);
+        points.add(new Vector3(0,0,-10));
 
-        Line3D line = new Line3D(points,1f,Color.RED);
+        Line3D line = new Line3D(points,5f,color);
         Material material = new Material();
-        material.setColor(Color.RED);
-        line.setMaterial(material);
-        return line;
-    }
-
-    public static Line3D createYAxis(){
-        Stack<Vector3> points = new Stack<>();
-        points.add(Vector3.ZERO);
-        points.add(Vector3.Y);
-
-        Line3D line = new Line3D(points,1f,Color.BLUE);
-        Material material = new Material();
-        material.setColor(Color.BLUE);
-        line.setMaterial(material);
-        return line;
-    }
-
-    public static Line3D createZAxis(){
-        Stack<Vector3> points = new Stack<>();
-        points.add(Vector3.ZERO);
-        points.add(Vector3.Z);
-
-        Line3D line = new Line3D(points,1f,Color.GREEN);
-        Material material = new Material();
-        material.setColor(Color.GREEN);
+        material.setColor(color);
         line.setMaterial(material);
         return line;
     }
