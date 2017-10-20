@@ -31,6 +31,13 @@ public class VRViewRenderer extends VRRenderer {
     private final static boolean ENABLE_TOASTS = true;
     private final static boolean RENDER_AXIS = true;
 
+    private final static int BUTTON_BG_COLOR = Color.argb(55, 55, 55, 55);
+    private final static int BUTTON_HOVER_BG_COLOR = Color.argb(180, 45, 45, 45);
+
+
+    private final static int CANVAS_WIDTH = 1024;
+    private final static int CANVAS_HEIGHT = 512;
+
     private final static String TAG = "VRViewRenderer";
     final static int MODE_EQUIRECTANGULAR = 0;
     final static int MODE_CUBIC = 1;
@@ -43,7 +50,9 @@ public class VRViewRenderer extends VRRenderer {
     private RectangularPrism textPrism;
     private ATexture currentTextTexture;
     private Material textPrismMaterial;
-    
+    private View buttonView;
+
+
     public VRViewRenderer(Context context) {
         super(context);
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
@@ -109,6 +118,14 @@ public class VRViewRenderer extends VRRenderer {
         textPrism.setTransparent(true);
 
         getCurrentScene().addChild(textPrism);
+
+        LayoutInflater inflater = LayoutInflater.from(getContext());
+        buttonView = inflater.inflate(R.layout.vr_button_layout, new LinearLayout(getContext()), false);
+        buttonView.setBackgroundColor(BUTTON_BG_COLOR);
+        buttonView.measure(View.MeasureSpec.getSize(buttonView.getMeasuredWidth())
+                , View.MeasureSpec.getSize(buttonView.getMeasuredHeight()));
+        buttonView.layout(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
     }
 
     @Override
@@ -199,32 +216,26 @@ public class VRViewRenderer extends VRRenderer {
 
         try {
             int color = Color.argb(55, 55, 55, 55);
-            currentTextTexture = new Texture("text", textAsBitmap(text, 12, Color.WHITE, color));
+            currentTextTexture = new Texture("text", textAsBitmap(text, 24));
             textPrismMaterial.addTexture(currentTextTexture);
         } catch (ATexture.TextureException e) {
             e.printStackTrace();
         }
     }
 
-    private Bitmap textAsBitmap(String text, float textSize, int color, int bgColor) {
-        int canvasWidth = 512;
-        int canvasHeight = 256;
+    private Bitmap textAsBitmap(String text, float textSize) {
 
-        LayoutInflater inflater = LayoutInflater.from(getContext());
-        View view = inflater.inflate(R.layout.vr_button_layout, new LinearLayout(getContext()), false);
-
-        TextView textView = (TextView) view.findViewById(R.id.vr_button_text);
+        TextView textView = (TextView) buttonView.findViewById(R.id.vr_button_text);
         textView.setText(text);
-        textView.setTextColor(color);
-        textView.setBackgroundColor(bgColor);
         textView.setTextSize(textSize);
-        textView.setVisibility(View.VISIBLE);
-        textView.layout(0, 0, canvasWidth, canvasHeight);
+        textView.layout(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
 
-        Bitmap buttonBitmap = Bitmap.createBitmap(canvasWidth, canvasHeight, Bitmap.Config.ARGB_8888);
+        Bitmap buttonBitmap = Bitmap.createBitmap(CANVAS_WIDTH, CANVAS_HEIGHT, Bitmap.Config.ARGB_8888);
         Canvas buttonCanvas = new Canvas(buttonBitmap);
-        textView.draw(buttonCanvas);
+        //buttonCanvas.translate(CANVAS_WIDTH/2, CANVAS_HEIGHT/2);
+        buttonView.draw(buttonCanvas);
+        //buttonCanvas.translate(-CANVAS_WIDTH/2, -CANVAS_HEIGHT/2);
         return buttonBitmap;
     }
 
