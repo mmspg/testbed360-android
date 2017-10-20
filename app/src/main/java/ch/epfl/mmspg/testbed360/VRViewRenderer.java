@@ -48,33 +48,10 @@ public class VRViewRenderer extends VRRenderer {
 
     @Override
     public void initScene() {
-        sphere = createPhotoSphereWithTexture(new Texture("photo", R.drawable.jvet_kiteflite_equirec_3000x1500_raw_q00));
-        getCurrentScene().addChild(sphere);
-
-        if(RENDER_AXIS) {
-            getCurrentScene().addChild(createLine(Vector3.ZERO, Vector3.X, Color.RED));
-            getCurrentScene().addChild(createLine(Vector3.ZERO, Vector3.Y, Color.GREEN));
-            getCurrentScene().addChild(createLine(Vector3.ZERO, Vector3.Z, Color.BLUE));
-        }
-
-        try {
-            getCurrentScene().setSkybox(R.drawable.jvet_kiteflite_cmp_3000x2250_raw_q00);
-        } catch (ATexture.TextureException e) {
-            Log.e(TAG, "Error setting the skybox texture");
-            e.printStackTrace();
-        }
-
-        textPrismMaterial = new Material();
-        textPrismMaterial.setColorInfluence(0);
-
-        textPrism = new RectangularPrism(10f, 5f, 0.4f);
-        textPrism.setPosition(0, 0, -10);
-        textPrism.setMaterial(textPrismMaterial);
-        textPrism.setVisible(true);
-        textPrism.rotate(Vector3.Axis.Y,180);
-        textPrism.setTransparent(true);
-
-        getCurrentScene().addChild(textPrism);
+        initSphere();
+        initSkyBox();
+        initText();
+        initAxis();
 
         getCurrentCamera().setPosition(Vector3.ZERO);
         getCurrentCamera().setFieldOfView(100);
@@ -82,24 +59,54 @@ public class VRViewRenderer extends VRRenderer {
         setText("Equirectangular");
     }
 
-    private static Sphere createPhotoSphereWithTexture(ATexture texture) {
+    private void initSphere() {
 
         Material material = new Material();
         material.setColor(0);
 
         try {
-            material.addTexture(texture);
+            material.addTexture(new Texture("photo", R.drawable.jvet_kiteflite_equirec_3000x1500_raw_q00));
         } catch (ATexture.TextureException e) {
             throw new RuntimeException(e);
         }
 
-        Sphere sphere = new Sphere(50, 64, 32);
+        sphere = new Sphere(50, 64, 32);
         sphere.setScaleX(-1); //otherwise image is inverted
         sphere.setMaterial(material);
 
-        return sphere;
+        getCurrentScene().addChild(sphere);
     }
 
+    private void initAxis() {
+        if (RENDER_AXIS) {
+            getCurrentScene().addChild(createLine(Vector3.ZERO, Vector3.X, Color.RED));
+            getCurrentScene().addChild(createLine(Vector3.ZERO, Vector3.Y, Color.GREEN));
+            getCurrentScene().addChild(createLine(Vector3.ZERO, Vector3.Z, Color.BLUE));
+        }
+    }
+
+    private void initSkyBox() {
+        try {
+            getCurrentScene().setSkybox(R.drawable.jvet_kiteflite_cmp_3000x2250_raw_q00);
+        } catch (ATexture.TextureException e) {
+            Log.e(TAG, "Error setting the skybox texture");
+            e.printStackTrace();
+        }
+    }
+
+    private void initText() {
+        textPrismMaterial = new Material();
+        textPrismMaterial.setColorInfluence(0);
+
+        textPrism = new RectangularPrism(10f, 5f, 0.4f);
+        textPrism.setPosition(0, 0, -20);
+        textPrism.setMaterial(textPrismMaterial);
+        textPrism.setVisible(true);
+        textPrism.rotate(Vector3.Axis.Y, 180);
+        textPrism.setTransparent(true);
+
+        getCurrentScene().addChild(textPrism);
+    }
 
     @Override
     public void onDrawEye(Eye eye) {
@@ -182,13 +189,13 @@ public class VRViewRenderer extends VRRenderer {
         return mode;
     }
 
-    public void setText(String text){
-        if(textPrismMaterial != null && currentTextTexture != null){
+    public void setText(String text) {
+        if (textPrismMaterial != null && currentTextTexture != null) {
             textPrismMaterial.removeTexture(currentTextTexture);
         }
 
         try {
-            int color = Color.argb(55,55,55,55);
+            int color = Color.argb(55, 55, 55, 55);
             currentTextTexture = new Texture("text", textAsBitmap(text, 50, Color.WHITE, color));
             textPrismMaterial.addTexture(currentTextTexture);
         } catch (ATexture.TextureException e) {
@@ -197,25 +204,27 @@ public class VRViewRenderer extends VRRenderer {
     }
 
     private static Bitmap textAsBitmap(String text, float textSize, int color, int bgColor) {
-        Bitmap mBtnBitmap = Bitmap.createBitmap(512, 256, Bitmap.Config.ARGB_8888);
+        int canvasWidth = 512;
+        int canvasHeight = 256;
+        Bitmap mBtnBitmap = Bitmap.createBitmap(canvasWidth, canvasHeight, Bitmap.Config.ARGB_8888);
         Canvas btnCanvas = new Canvas(mBtnBitmap);
         Paint btnPaint = new Paint();
         btnPaint.setColor(bgColor);
         btnPaint.setStyle(Paint.Style.FILL);
-        btnCanvas.drawRect(0, 0, 512, 512, btnPaint);
+        btnCanvas.drawRect(0, 0, 512, 256, btnPaint);
         btnPaint.setColor(color);
         btnPaint.setTextSize(textSize);
         btnCanvas.drawText(text, 12, 40, btnPaint);
         return mBtnBitmap;
     }
 
-    private static Line3D createLine(Vector3 p1, Vector3 p2, int color){
+    private static Line3D createLine(Vector3 p1, Vector3 p2, int color) {
         Stack<Vector3> points = new Stack<>();
         points.add(p1);
         points.add(p2);
-        points.add(new Vector3(0,0,-10));
+        points.add(new Vector3(0, 0, -10));
 
-        Line3D line = new Line3D(points,5f,color);
+        Line3D line = new Line3D(points, 5f, color);
         Material material = new Material();
         material.setColor(color);
         line.setMaterial(material);
