@@ -56,7 +56,7 @@ public class VRViewRenderer extends VRRenderer {
             getCurrentScene().addChild(createLine(Vector3.ZERO, Vector3.Y, Color.GREEN));
             getCurrentScene().addChild(createLine(Vector3.ZERO, Vector3.Z, Color.BLUE));
         }
-        
+
         try {
             getCurrentScene().setSkybox(R.drawable.jvet_kiteflite_cmp_3000x2250_raw_q00);
         } catch (ATexture.TextureException e) {
@@ -72,6 +72,7 @@ public class VRViewRenderer extends VRRenderer {
         textPrism.setMaterial(textPrismMaterial);
         textPrism.setVisible(true);
         textPrism.rotate(Vector3.Axis.Y,180);
+        textPrism.setTransparent(true);
 
         getCurrentScene().addChild(textPrism);
 
@@ -187,7 +188,7 @@ public class VRViewRenderer extends VRRenderer {
         }
 
         try {
-            int color = Color.argb(150,55,55,55);
+            int color = Color.argb(55,55,55,55);
             currentTextTexture = new Texture("text", textAsBitmap(text, 50, Color.WHITE, color));
             textPrismMaterial.addTexture(currentTextTexture);
         } catch (ATexture.TextureException e) {
