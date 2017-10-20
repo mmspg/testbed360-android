@@ -1,16 +1,10 @@
 package ch.epfl.mmspg.testbed360;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Vibrator;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
-import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.vrtoolkit.cardboard.Eye;
@@ -18,13 +12,15 @@ import com.google.vrtoolkit.cardboard.Eye;
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.materials.textures.Texture;
+import org.rajawali3d.materials.textures.TextureManager;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Line3D;
-import org.rajawali3d.primitives.RectangularPrism;
 import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.vr.renderer.VRRenderer;
 
 import java.util.Stack;
+
+import ch.epfl.mmspg.testbed360.ui.VRButton;
 
 public class VRViewRenderer extends VRRenderer {
     //TODO remove this in production, only for debugging
@@ -44,13 +40,10 @@ public class VRViewRenderer extends VRRenderer {
 
     private int mode = MODE_EQUIRECTANGULAR;
     private Sphere sphere;
+    private VRButton button;
 
     private Vibrator vibrator;
 
-    private RectangularPrism textPrism;
-    private ATexture currentTextTexture;
-    private Material textPrismMaterial;
-    private View buttonView;
 
 
     public VRViewRenderer(Context context) {
@@ -62,13 +55,11 @@ public class VRViewRenderer extends VRRenderer {
     public void initScene() {
         initSphere();
         initSkyBox();
-        initText();
+        initButton();
         initAxis();
 
         getCurrentCamera().setPosition(Vector3.ZERO);
         getCurrentCamera().setFieldOfView(100);
-
-        setText("Equirectangular");
     }
 
     private void initSphere() {
@@ -106,25 +97,16 @@ public class VRViewRenderer extends VRRenderer {
         }
     }
 
-    private void initText() {
-        textPrismMaterial = new Material();
-        textPrismMaterial.setColorInfluence(0);
+    private void initButton() {
+        try {
+            button = new VRButton(getContext(),"Equirectangular",10f, 2f);
+        } catch (ATexture.TextureException e) {
+            e.printStackTrace();
+        }
+        button.setPosition(0, 0, -20);
+        button.setVibrator(vibrator);
 
-        textPrism = new RectangularPrism(10f, 5f, 0.4f);
-        textPrism.setPosition(0, 0, -20);
-        textPrism.setMaterial(textPrismMaterial);
-        textPrism.setVisible(true);
-        textPrism.rotate(Vector3.Axis.Y, 180);
-        textPrism.setTransparent(true);
-
-        getCurrentScene().addChild(textPrism);
-
-        LayoutInflater inflater = LayoutInflater.from(getContext());
-        buttonView = inflater.inflate(R.layout.vr_button_layout, new LinearLayout(getContext()), false);
-        buttonView.setBackgroundColor(BUTTON_BG_COLOR);
-        buttonView.measure(View.MeasureSpec.getSize(buttonView.getMeasuredWidth())
-                , View.MeasureSpec.getSize(buttonView.getMeasuredHeight()));
-        buttonView.layout(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        getCurrentScene().addChild(button);
 
     }
 
@@ -143,7 +125,7 @@ public class VRViewRenderer extends VRRenderer {
         getCurrentCamera().setOrientation(mCurrentEyeOrientation.inverse());
         getCurrentCamera().setPosition(mCameraPosition);
         getCurrentCamera().getPosition().add(mCurrentEyeMatrix.getTranslation().inverse());
-
+        button.onHover(isLookingAtObject(button));
         super.onRenderFrame(null);
     }
 
@@ -180,7 +162,7 @@ public class VRViewRenderer extends VRRenderer {
 
         try {
             getCurrentScene().updateSkybox(R.drawable.jvet_kiteflite_cmp_3000x2250_raw_q00);
-            setText("Cubic");
+            button.setText("Cubic");
         } catch (Exception e) {
             Log.e(TAG, "Error updating the skybox texture");
             e.printStackTrace();
@@ -202,42 +184,13 @@ public class VRViewRenderer extends VRRenderer {
 
         mode = MODE_EQUIRECTANGULAR;
         sphere.setVisible(true);
-        setText("Equirectangular");
+        button.setText("Equirectangular");
     }
 
     int getMode() {
         return mode;
     }
 
-    public void setText(String text) {
-        if (textPrismMaterial != null && currentTextTexture != null) {
-            textPrismMaterial.removeTexture(currentTextTexture);
-        }
-
-        try {
-            int color = Color.argb(55, 55, 55, 55);
-            currentTextTexture = new Texture("text", textAsBitmap(text, 24));
-            textPrismMaterial.addTexture(currentTextTexture);
-        } catch (ATexture.TextureException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private Bitmap textAsBitmap(String text, float textSize) {
-
-        TextView textView = (TextView) buttonView.findViewById(R.id.vr_button_text);
-        textView.setText(text);
-        textView.setTextSize(textSize);
-        textView.layout(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-
-        Bitmap buttonBitmap = Bitmap.createBitmap(CANVAS_WIDTH, CANVAS_HEIGHT, Bitmap.Config.ARGB_8888);
-        Canvas buttonCanvas = new Canvas(buttonBitmap);
-        //buttonCanvas.translate(CANVAS_WIDTH/2, CANVAS_HEIGHT/2);
-        buttonView.draw(buttonCanvas);
-        //buttonCanvas.translate(-CANVAS_WIDTH/2, -CANVAS_HEIGHT/2);
-        return buttonBitmap;
-    }
 
     private static Line3D createLine(Vector3 p1, Vector3 p2, int color) {
         Stack<Vector3> points = new Stack<>();
