@@ -4,10 +4,13 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.os.Vibrator;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.vrtoolkit.cardboard.Eye;
@@ -40,7 +43,7 @@ public class VRViewRenderer extends VRRenderer {
     private RectangularPrism textPrism;
     private ATexture currentTextTexture;
     private Material textPrismMaterial;
-
+    
     public VRViewRenderer(Context context) {
         super(context);
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
@@ -196,26 +199,33 @@ public class VRViewRenderer extends VRRenderer {
 
         try {
             int color = Color.argb(55, 55, 55, 55);
-            currentTextTexture = new Texture("text", textAsBitmap(text, 50, Color.WHITE, color));
+            currentTextTexture = new Texture("text", textAsBitmap(text, 12, Color.WHITE, color));
             textPrismMaterial.addTexture(currentTextTexture);
         } catch (ATexture.TextureException e) {
             e.printStackTrace();
         }
     }
 
-    private static Bitmap textAsBitmap(String text, float textSize, int color, int bgColor) {
+    private Bitmap textAsBitmap(String text, float textSize, int color, int bgColor) {
         int canvasWidth = 512;
         int canvasHeight = 256;
-        Bitmap mBtnBitmap = Bitmap.createBitmap(canvasWidth, canvasHeight, Bitmap.Config.ARGB_8888);
-        Canvas btnCanvas = new Canvas(mBtnBitmap);
-        Paint btnPaint = new Paint();
-        btnPaint.setColor(bgColor);
-        btnPaint.setStyle(Paint.Style.FILL);
-        btnCanvas.drawRect(0, 0, 512, 256, btnPaint);
-        btnPaint.setColor(color);
-        btnPaint.setTextSize(textSize);
-        btnCanvas.drawText(text, 12, 40, btnPaint);
-        return mBtnBitmap;
+
+        LayoutInflater inflater = LayoutInflater.from(getContext());
+        View view = inflater.inflate(R.layout.vr_button_layout, new LinearLayout(getContext()), false);
+
+        TextView textView = (TextView) view.findViewById(R.id.vr_button_text);
+        textView.setText(text);
+        textView.setTextColor(color);
+        textView.setBackgroundColor(bgColor);
+        textView.setTextSize(textSize);
+        textView.setVisibility(View.VISIBLE);
+        textView.layout(0, 0, canvasWidth, canvasHeight);
+
+
+        Bitmap buttonBitmap = Bitmap.createBitmap(canvasWidth, canvasHeight, Bitmap.Config.ARGB_8888);
+        Canvas buttonCanvas = new Canvas(buttonBitmap);
+        textView.draw(buttonCanvas);
+        return buttonBitmap;
     }
 
     private static Line3D createLine(Vector3 p1, Vector3 p2, int color) {
