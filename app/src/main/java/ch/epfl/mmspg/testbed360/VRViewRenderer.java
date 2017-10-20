@@ -243,9 +243,9 @@ public class VRViewRenderer extends VRRenderer {
         Stack<Vector3> points = new Stack<>();
         points.add(p1);
         points.add(p2);
-        points.add(new Vector3(0, 0, -10));
+        points.add(new Vector3(-5, -5, -10));
 
-        Line3D line = new Line3D(points, 5f, color);
+        Line3D line = new Line3D(points, 2f, color);
         Material material = new Material();
         material.setColor(color);
         line.setMaterial(material);
