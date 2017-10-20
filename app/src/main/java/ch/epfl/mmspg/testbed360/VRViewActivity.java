@@ -52,12 +52,7 @@ public class VRViewActivity extends VRActivity {
      */
     @Override
     public void onCardboardTrigger() {
-        Log.d(TAG, "Cardboard trigger");
-        if (mRenderer.getMode() == VRViewRenderer.MODE_EQUIRECTANGULAR) {
-            mRenderer.setCubicMode();
-        } else if (mRenderer.getMode() == VRViewRenderer.MODE_CUBIC) {
-            mRenderer.setEquirectangularMode();
-        }
+        mRenderer.onCardboardTrigger();
     }
 
     @Override

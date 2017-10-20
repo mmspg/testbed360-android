@@ -5,45 +5,36 @@ import android.graphics.Color;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.widget.Toast;
 
 import com.google.vrtoolkit.cardboard.Eye;
 
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.materials.textures.Texture;
-import org.rajawali3d.materials.textures.TextureManager;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Line3D;
 import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.vr.renderer.VRRenderer;
 
 import java.util.Stack;
+import java.util.concurrent.Callable;
 
 import ch.epfl.mmspg.testbed360.ui.VRButton;
 
 public class VRViewRenderer extends VRRenderer {
-    //TODO remove this in production, only for debugging
+    //TODO remove or set false this in production, only for debugging
     private final static boolean ENABLE_TOASTS = true;
     private final static boolean RENDER_AXIS = true;
 
-    private final static int BUTTON_BG_COLOR = Color.argb(55, 55, 55, 55);
-    private final static int BUTTON_HOVER_BG_COLOR = Color.argb(180, 45, 45, 45);
-
-
-    private final static int CANVAS_WIDTH = 1024;
-    private final static int CANVAS_HEIGHT = 512;
-
     private final static String TAG = "VRViewRenderer";
-    final static int MODE_EQUIRECTANGULAR = 0;
-    final static int MODE_CUBIC = 1;
+    private final static int MODE_EQUIRECTANGULAR = 0;
+    private final static int MODE_CUBIC = 1;
 
     private int mode = MODE_EQUIRECTANGULAR;
     private Sphere sphere;
     private VRButton button;
 
     private Vibrator vibrator;
-
 
 
     public VRViewRenderer(Context context) {
@@ -99,12 +90,23 @@ public class VRViewRenderer extends VRRenderer {
 
     private void initButton() {
         try {
-            button = new VRButton(getContext(),"Equirectangular",10f, 2f);
+            button = new VRButton(getContext(), "Equirectangular", 10f, 2f);
         } catch (ATexture.TextureException e) {
             e.printStackTrace();
         }
         button.setPosition(0, 0, -20);
         button.setVibrator(vibrator);
+        button.setOnTriggerAction(new Callable() {
+            @Override
+            public Object call() throws Exception {
+                if (getMode() == VRViewRenderer.MODE_EQUIRECTANGULAR) {
+                    setCubicMode();
+                } else if (getMode() == VRViewRenderer.MODE_CUBIC) {
+                    setEquirectangularMode();
+                }
+                return null;
+            }
+        });
 
         getCurrentScene().addChild(button);
 
@@ -125,7 +127,7 @@ public class VRViewRenderer extends VRRenderer {
         getCurrentCamera().setOrientation(mCurrentEyeOrientation.inverse());
         getCurrentCamera().setPosition(mCameraPosition);
         getCurrentCamera().getPosition().add(mCurrentEyeMatrix.getTranslation().inverse());
-        button.onHover(isLookingAtObject(button));
+        button.checkHovered(this);
         super.onRenderFrame(null);
     }
 
@@ -144,18 +146,18 @@ public class VRViewRenderer extends VRRenderer {
     public void onTouchEvent(MotionEvent event) {
     }
 
+    public void onCardboardTrigger() {
+        Log.d(TAG, "Cardboard trigger");
+        button.onCardboardTrigger();
+    }
+
     /**
      * Changes the mode of projection to cubic. Basically just changes the
      * {@link VRViewRenderer#mode} value to {@link VRViewRenderer#MODE_CUBIC} and sets
      * the sphere as invisible
      */
-    void setCubicMode() {
-        vibrator.vibrate(50);
+    private void setCubicMode() {
         Log.i(TAG, "Changing mode to : CUBIC_MODE");
-
-        if (ENABLE_TOASTS) {
-            Toast.makeText(getContext(), "Cubic", Toast.LENGTH_SHORT).show();
-        }
 
         mode = MODE_CUBIC;
         sphere.setVisible(false);
@@ -174,20 +176,15 @@ public class VRViewRenderer extends VRRenderer {
      * {@link VRViewRenderer#mode} value to {@link VRViewRenderer#MODE_EQUIRECTANGULAR} and sets
      * the sphere as visible
      */
-    void setEquirectangularMode() {
-        vibrator.vibrate(50);
+    private void setEquirectangularMode() {
         Log.i(TAG, "Changing mode to : EQUIRECTANGULAR");
-
-        if (ENABLE_TOASTS) {
-            Toast.makeText(getContext(), "Equirectangular", Toast.LENGTH_SHORT).show();
-        }
 
         mode = MODE_EQUIRECTANGULAR;
         sphere.setVisible(true);
         button.setText("Equirectangular");
     }
 
-    int getMode() {
+    public int getMode() {
         return mode;
     }
 
