@@ -20,6 +20,7 @@ import java.util.Stack;
 import java.util.concurrent.Callable;
 
 import ch.epfl.mmspg.testbed360.ui.VRButton;
+import ch.epfl.mmspg.testbed360.ui.VRMenu;
 
 public class VRViewRenderer extends VRRenderer {
     //TODO remove or set false this in production, only for debugging
@@ -32,7 +33,7 @@ public class VRViewRenderer extends VRRenderer {
 
     private int mode = MODE_EQUIRECTANGULAR;
     private Sphere sphere;
-    private VRButton button;
+    private VRMenu menu;
 
     private Vibrator vibrator;
 
@@ -46,7 +47,7 @@ public class VRViewRenderer extends VRRenderer {
     public void initScene() {
         initSphere();
         initSkyBox();
-        initButton();
+        initMenu();
         initAxis();
 
         getCurrentCamera().setPosition(Vector3.ZERO);
@@ -88,27 +89,40 @@ public class VRViewRenderer extends VRRenderer {
         }
     }
 
-    private void initButton() {
+    private void initMenu() {
+        menu = new VRMenu();
+        menu.setPosition(0,10,-20);
+
+        //TODO implement automatic rotation to be correctly oriented to camera
+        menu.rotate(Vector3.Axis.Y,180);
+
         try {
-            button = new VRButton(getContext(), "Equirectangular", 10f, 2f);
+            VRButton button = new VRButton(getContext(), "Equirectangular", 10f, 2f);
+            //button.setPosition(0, 0, -20);
+            button.setOnTriggerAction(new Callable() {
+                @Override
+                public Object call() throws Exception {
+                    if (getMode() == VRViewRenderer.MODE_EQUIRECTANGULAR) {
+                        setCubicMode();
+                    } else if (getMode() == VRViewRenderer.MODE_CUBIC) {
+                        setEquirectangularMode();
+                    }
+                    return null;
+                }
+            });
+            menu.addButton(button);
+
+            VRButton testButton = new VRButton(getContext(),
+                    "This is a test ! No action if pressed",
+                    10f,
+                    2f);
+            menu.addButton(testButton);
+
         } catch (ATexture.TextureException e) {
             e.printStackTrace();
         }
-        button.setPosition(0, 0, -20);
-        button.setVibrator(vibrator);
-        button.setOnTriggerAction(new Callable() {
-            @Override
-            public Object call() throws Exception {
-                if (getMode() == VRViewRenderer.MODE_EQUIRECTANGULAR) {
-                    setCubicMode();
-                } else if (getMode() == VRViewRenderer.MODE_CUBIC) {
-                    setEquirectangularMode();
-                }
-                return null;
-            }
-        });
 
-        getCurrentScene().addChild(button);
+        getCurrentScene().addChild(menu);
 
     }
 
@@ -127,7 +141,7 @@ public class VRViewRenderer extends VRRenderer {
         getCurrentCamera().setOrientation(mCurrentEyeOrientation.inverse());
         getCurrentCamera().setPosition(mCameraPosition);
         getCurrentCamera().getPosition().add(mCurrentEyeMatrix.getTranslation().inverse());
-        button.checkHovered(this);
+        menu.onDrawing(this);
         super.onRenderFrame(null);
     }
 
@@ -148,7 +162,7 @@ public class VRViewRenderer extends VRRenderer {
 
     public void onCardboardTrigger() {
         Log.d(TAG, "Cardboard trigger");
-        button.onCardboardTrigger();
+        menu.onCardboardTrigger();
     }
 
     /**
@@ -164,7 +178,7 @@ public class VRViewRenderer extends VRRenderer {
 
         try {
             getCurrentScene().updateSkybox(R.drawable.jvet_kiteflite_cmp_3000x2250_raw_q00);
-            button.setText("Cubic");
+            menu.getButton(0).setText("Cubic");
         } catch (Exception e) {
             Log.e(TAG, "Error updating the skybox texture");
             e.printStackTrace();
@@ -181,7 +195,7 @@ public class VRViewRenderer extends VRRenderer {
 
         mode = MODE_EQUIRECTANGULAR;
         sphere.setVisible(true);
-        button.setText("Equirectangular");
+        menu.getButton(0).setText("Equirectangular");
     }
 
     public int getMode() {
@@ -193,12 +207,14 @@ public class VRViewRenderer extends VRRenderer {
         Stack<Vector3> points = new Stack<>();
         points.add(p1);
         points.add(p2);
-        points.add(new Vector3(-5, -5, -10));
 
         Line3D line = new Line3D(points, 2f, color);
         Material material = new Material();
         material.setColor(color);
         line.setMaterial(material);
+        line.moveUp(-5);
+        line.moveRight(-5);
+        line.moveForward(-5);
         return line;
     }
 }

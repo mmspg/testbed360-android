@@ -25,8 +25,9 @@ import java.util.concurrent.Callable;
 import ch.epfl.mmspg.testbed360.R;
 import ch.epfl.mmspg.testbed360.VRViewRenderer;
 
-/** This class is a helper class to represent UI buttons in the {@link VRViewRenderer}.
- *
+/**
+ * This class is a helper class to represent UI buttons in the {@link VRViewRenderer}.
+ * <p>
  * In order to represent them in 3D, we extend the {@link RectangularPrism} class, except that there
  * is no depth for every {@link VRButton}. This prism has a {@link Texture} assigned to it, namely
  * {@link #texture}.
@@ -60,10 +61,15 @@ public class VRButton extends RectangularPrism {
     private TextView textView;
     private String buttonId;
 
+    private float width;
+    private float height;
+
     private String text;
 
     private boolean isHovered = false;
     private Vibrator vibrator;
+
+    private VRMenu parentMenu;
 
     private Callable onTriggerAction;
 
@@ -71,16 +77,17 @@ public class VRButton extends RectangularPrism {
      * Creates a {@link VRButton}
      *
      * @param context context to load the default button layout from
-     * @param text the initial text we want to set
-     * @param width the width (in OpenGL coordinates) of the button
-     * @param height the height (in OpenGL coordinates) of the button
+     * @param text    the initial text we want to set
+     * @param width   the width (in OpenGL coordinates) of the button
+     * @param height  the height (in OpenGL coordinates) of the button
      * @throws ATexture.TextureException in case there was an error binding the initial texture
      */
     public VRButton(Context context, String text, float width, float height) throws ATexture.TextureException {
         super(width, height, 0f);
+        this.width = width;
+        this.height = height;
 
         setVisible(true);
-        rotate(Vector3.Axis.Y, 180);
         setTransparent(true);
 
         buttonId = TAG + BUTTON_COUNTER++;
@@ -106,10 +113,12 @@ public class VRButton extends RectangularPrism {
 
         setText(text);
 
+        vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
     }
 
     /**
      * Updates the text of the button with a new text, triggering a redraw
+     *
      * @param newText the new text to set
      */
     public void setText(String newText) {
@@ -131,18 +140,17 @@ public class VRButton extends RectangularPrism {
 
     /**
      * Changes the hovered state of the button with the new value, and triggers associated actions.
-     * @param renderer the VRViewRenderer this button is part of. Used to compute if the button is
-     *                 hovered using {@link VRViewRenderer#isLookingAtObject(Object3D, float)} with
-     *                 value {@link #LOOKING_AT_ANGLE}
+     *
+     * @param isHovered of the button is considered hovered. Usually determined by a {@link VRMenu}
      */
-    public void checkHovered(VRViewRenderer renderer) {
-        boolean isHovered = renderer.isLookingAtObject(this, LOOKING_AT_ANGLE);
-
+    public void setHovered(boolean isHovered) {
         //here we check the previous status, so that we do not repaint bitmap uselessly
         if (!this.isHovered && isHovered) {
             vibrate(VIBRATION_HOVER_MS);
             layoutView.setBackgroundColor(BUTTON_HOVER_BG_COLOR);
             redraw();
+
+            Log.d(TAG,"ParentY:"+parentMenu.getY()+",childY:"+super.getY());
 
         } else if (this.isHovered && !isHovered) {
             layoutView.setBackgroundColor(BUTTON_BG_COLOR);
@@ -151,8 +159,12 @@ public class VRButton extends RectangularPrism {
         this.isHovered = isHovered;
     }
 
-    /** Checks whether the button is being pressed (i.e. {@link #isHovered}, as we now there was a
+
+
+    /**
+     * Checks whether the button is being pressed (i.e. {@link #isHovered}, as we now there was a
      * trigger/touch done) and execute the {@link #onTriggerAction} associated to it.
+     *
      * @return true if the event was consumed, false otherwise. This should be checked to not propagate
      * the trigger uselessly to other buttons
      */
@@ -181,13 +193,45 @@ public class VRButton extends RectangularPrism {
         this.onTriggerAction = onTriggerAction;
     }
 
-    public void setVibrator(Vibrator vibrator) {
-        this.vibrator = vibrator;
-    }
-
-    private void vibrate(int ms){
+    private void vibrate(int ms) {
         if (vibrator != null) {
             vibrator.vibrate(ms);
         }
+    }
+
+    public VRMenu getParentMenu() {
+        return parentMenu;
+    }
+
+    public void setParentMenu(VRMenu parentMenu) {
+        this.parentMenu = parentMenu;
+    }
+
+    /**
+     * We override this method as if this {@link VRButton} belongs to a {@link VRMenu}, its position
+     * is relative to the {@link #parentMenu}'s position. Hence we need to return the addition of
+     * both positions. This allows us to have {@link VRViewRenderer#isLookingAtObject(Object3D, float)}
+     * working as expected.
+     *
+     * @return the absolute position of the {@link VRButton} in its world
+     */
+    @Override
+    public Vector3 getPosition() {
+        if (parentMenu != null) {
+            return new Vector3(
+                    parentMenu.getX() + super.getX(),
+                    Math.cos(parentMenu.getRotY()) * (parentMenu.getY() + super.getY()),
+                    parentMenu.getZ() + super.getZ()
+            );
+        }
+        return super.getPosition();
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public float getHeight() {
+        return height;
     }
 }
