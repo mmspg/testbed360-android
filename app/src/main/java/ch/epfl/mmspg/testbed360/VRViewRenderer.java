@@ -8,6 +8,7 @@ import android.view.MotionEvent;
 
 import com.google.vrtoolkit.cardboard.Eye;
 
+import org.rajawali3d.Object3D;
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.materials.textures.Texture;
@@ -37,6 +38,8 @@ public class VRViewRenderer extends VRRenderer {
 
     private Vibrator vibrator;
 
+    Vector3 mForwardVec = new Vector3(0);
+    Vector3 mHeadTranslation = new Vector3(0);
 
     public VRViewRenderer(Context context) {
         super(context);
@@ -90,8 +93,7 @@ public class VRViewRenderer extends VRRenderer {
     }
 
     private void initMenu() {
-        menu = new VRMenu();
-        menu.setPosition(0, 10, -20);
+        menu = new VRMenu(20);
 
         try {
             VRButton button = new VRButton(getContext(), "Equirectangular", 10f, 2f);
@@ -129,17 +131,36 @@ public class VRViewRenderer extends VRRenderer {
                 eye.getFov().getLeft(),
                 eye.getFov().getRight(),
                 eye.getFov().getBottom(),
-                eye.getFov().getTop());
+                eye.getFov().getTop()
+        );
         mCurrentEyeMatrix.setAll(eye.getEyeView());
-        mCurrentEyeOrientation.fromMatrix(mCurrentEyeMatrix);
+        mCurrentEyeOrientation.fromMatrix(mCurrentEyeMatrix.inverse());
 
         //the call to .inverse() here fixes the inverted orientation of the view
         //see suggestion I made at https://github.com/Rajawali/Rajawali/issues/1935
-        getCurrentCamera().setOrientation(mCurrentEyeOrientation.inverse());
+        getCurrentCamera().setOrientation(mCurrentEyeOrientation);
         getCurrentCamera().setPosition(mCameraPosition);
-        getCurrentCamera().getPosition().add(mCurrentEyeMatrix.getTranslation().inverse());
+        getCurrentCamera().getPosition().add(mCurrentEyeMatrix.getTranslation());
         menu.onDrawing(this);
         super.onRenderFrame(null);
+    }
+
+    @Override
+    public boolean isLookingAtObject(Object3D target, float maxAngle) {
+        mHeadViewQuaternion.fromMatrix(mHeadViewMatrix);
+
+        //here we override this method to remove this inversion as we already inverse the
+        //camera orientation in onDrawEye
+        //mHeadViewQuaternion.inverse();
+
+        mForwardVec.setAll(0, 0, 1);
+        mForwardVec.rotateBy(mHeadViewQuaternion);
+
+        mHeadTranslation.setAll(mHeadViewMatrix.getTranslation());
+        mHeadTranslation.subtract(target.getPosition());
+        mHeadTranslation.normalize();
+
+        return mHeadTranslation.angle(mForwardVec) < maxAngle;
     }
 
 

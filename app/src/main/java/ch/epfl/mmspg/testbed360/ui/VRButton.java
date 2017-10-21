@@ -122,9 +122,13 @@ public class VRButton extends RectangularPrism {
      * @param newText the new text to set
      */
     public void setText(String newText) {
+        boolean needRedraw = this.text == null || !this.text.equals(newText);
         this.text = newText;
         textView.setText(text);
-        redraw();
+
+        if (needRedraw) {
+            redraw();
+        }
     }
 
     /**
@@ -214,11 +218,13 @@ public class VRButton extends RectangularPrism {
     @Override
     public Vector3 getPosition() {
         if (parentMenu != null) {
-            return new Vector3(
-                    parentMenu.getX() + super.getX(),
-                    Math.cos(parentMenu.getRotY()) * (parentMenu.getY() + super.getY()),
-                    parentMenu.getZ() + super.getZ()
-            );
+            //double x = Math.sin(parentMenu.getRotY()) * Math.abs(parentMenu.getZ() + super.getZ());
+            //double y = Math.cos(parentMenu.getRotY()) * (parentMenu.getY() + super.getY());
+            double x = parentMenu.getX() + super.getX();
+            double y = parentMenu.getY() + super.getY();
+            double z = parentMenu.getZ() + super.getZ();
+            //double z = Math.cos(parentMenu.getRotY()) * Math.abs(parentMenu.getZ() + super.getZ());
+            return new Vector3(x, y, z);
         }
         return super.getPosition();
     }
