@@ -91,10 +91,7 @@ public class VRViewRenderer extends VRRenderer {
 
     private void initMenu() {
         menu = new VRMenu();
-        menu.setPosition(0,10,-20);
-
-        //TODO implement automatic rotation to be correctly oriented to camera
-        menu.rotate(Vector3.Axis.Y,180);
+        menu.setPosition(0, 10, -20);
 
         try {
             VRButton button = new VRButton(getContext(), "Equirectangular", 10f, 2f);
@@ -162,7 +159,9 @@ public class VRViewRenderer extends VRRenderer {
 
     public void onCardboardTrigger() {
         Log.d(TAG, "Cardboard trigger");
-        menu.onCardboardTrigger();
+        if (menu != null) {
+            menu.onCardboardTrigger();
+        }
     }
 
     /**

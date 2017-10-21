@@ -49,7 +49,7 @@ public class VRButton extends RectangularPrism {
     private final static int BUTTON_HOVER_BG_COLOR = Color.argb(180, 45, 45, 45);
 
     private final static int VIBRATION_HOVER_MS = 20;
-    private final static int VIBRATION_PRESS_MS = 80;
+    private final static int VIBRATION_PRESS_MS = 50;
 
     private final static int CANVAS_WIDTH = 1024;
     private final static int CANVAS_HEIGHT = 256;
@@ -149,16 +149,12 @@ public class VRButton extends RectangularPrism {
             vibrate(VIBRATION_HOVER_MS);
             layoutView.setBackgroundColor(BUTTON_HOVER_BG_COLOR);
             redraw();
-
-            Log.d(TAG,"ParentY:"+parentMenu.getY()+",childY:"+super.getY());
-
         } else if (this.isHovered && !isHovered) {
             layoutView.setBackgroundColor(BUTTON_BG_COLOR);
             redraw();
         }
         this.isHovered = isHovered;
     }
-
 
 
     /**

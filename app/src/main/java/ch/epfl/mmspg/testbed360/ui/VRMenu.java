@@ -67,7 +67,7 @@ public class VRMenu extends RectangularPrism {
     }
 
     public void onDrawing(VRViewRenderer renderer) {
-        //setRotY(renderer.getCurrentCamera().getRotY());
+        setRotY(180 + renderer.getCurrentCamera().getRotY() * 180.0 / Math.PI);
 
         boolean consumed = false;
         for (VRButton button : buttons) {
@@ -78,6 +78,7 @@ public class VRMenu extends RectangularPrism {
                 button.setHovered(consumed);
             }
         }
+
     }
 
     private float computeNextButtonY() {
