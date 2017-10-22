@@ -15,6 +15,7 @@ import org.rajawali3d.materials.textures.Texture;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Line3D;
 import org.rajawali3d.primitives.Sphere;
+import org.rajawali3d.util.OnFPSUpdateListener;
 import org.rajawali3d.vr.renderer.VRRenderer;
 
 import java.util.Stack;
@@ -111,11 +112,24 @@ public class VRViewRenderer extends VRRenderer {
             });
             menu.addButton(button);
 
-            VRButton testButton = new VRButton(getContext(),
+            final VRButton fpsButton = new VRButton(getContext(),
                     "This is a test ! No action if pressed",
                     10f,
                     2f);
-            menu.addButton(testButton);
+            fpsButton.setName("FPSButton");
+            setFPSUpdateListener(new OnFPSUpdateListener() {
+                @Override
+                public void onFPSUpdate(double fps) {
+                    //pretty sure we have to divide per two because this method was thought
+                    //for non VR rendering, hence we render twice as much image, which would give
+                    //us here ~120FPS which seems way too much!
+                    //also rounding to display to the nearest .5, hence to avoid redrawing too often
+                    // this button which would make the FPS go down ironically !
+                    fpsButton.setText("FPS:"+ Math.round(fps) / 2.0);
+                }
+            });
+            menu.addButton(fpsButton);
+
 
         } catch (ATexture.TextureException e) {
             e.printStackTrace();

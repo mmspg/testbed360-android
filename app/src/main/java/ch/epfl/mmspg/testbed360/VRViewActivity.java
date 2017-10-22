@@ -43,6 +43,7 @@ public class VRViewActivity extends VRActivity {
 
         mRenderer = new VRViewRenderer(this);
         setRenderer(mRenderer);
+        
 
         setConvertTapIntoTrigger(true);
     }

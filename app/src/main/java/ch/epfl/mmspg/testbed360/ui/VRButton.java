@@ -218,13 +218,7 @@ public class VRButton extends RectangularPrism {
     @Override
     public Vector3 getPosition() {
         if (parentMenu != null) {
-            //double x = Math.sin(parentMenu.getRotY()) * Math.abs(parentMenu.getZ() + super.getZ());
-            //double y = Math.cos(parentMenu.getRotY()) * (parentMenu.getY() + super.getY());
-            double x = parentMenu.getX() + super.getX();
-            double y = parentMenu.getY() + super.getY();
-            double z = parentMenu.getZ() + super.getZ();
-            //double z = Math.cos(parentMenu.getRotY()) * Math.abs(parentMenu.getZ() + super.getZ());
-            return new Vector3(x, y, z);
+            return parentMenu.getPosition().clone().add(super.getPosition());
         }
         return super.getPosition();
     }
