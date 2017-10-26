@@ -90,7 +90,7 @@ public class VRMenu extends RectangularPrism {
             if (consumed) {
                 button.setHovered(false);
             } else {
-                consumed = renderer.isLookingAtObject(button);
+                consumed = renderer.isLookingAtObject(button,5);
                 button.setHovered(consumed);
             }
             /*Vector3 pos = button.getPosition();

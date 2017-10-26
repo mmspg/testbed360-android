@@ -37,14 +37,11 @@ public class VRViewRenderer extends VRRenderer {
     private Sphere sphere;
     private VRMenu menu;
 
-    private Vibrator vibrator;
-
-    Vector3 mForwardVec = new Vector3(0);
-    Vector3 mHeadTranslation = new Vector3(0);
+    private Vector3 mForwardVec = new Vector3(0);
+    private Vector3 mHeadTranslation = new Vector3(0);
 
     public VRViewRenderer(Context context) {
         super(context);
-        vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
     }
 
     @Override
