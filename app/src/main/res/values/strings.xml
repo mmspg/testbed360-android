@@ -4,5 +4,10 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="gvr_vr_mode_component" description="Google VR component name used for enabling VR mode" translatable="false">com.google.vr.vrcore/com.google.vr.vrcore.common.VrCoreListenerService</string>
-
+    <string name="grade_none">None</string>
+    <string name="grade_0">Very bad</string>
+    <string name="grade_1">Bad</string>
+    <string name="grade_2">Correct</string>
+    <string name="grade_3">Good</string>
+    <string name="grade_4">Excellent</string>
 </resources>

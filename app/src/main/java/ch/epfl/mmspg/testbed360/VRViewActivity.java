@@ -23,6 +23,10 @@ import android.view.WindowManager;
 
 import org.rajawali3d.vr.VRActivity;
 
+import java.io.IOException;
+
+import ch.epfl.mmspg.testbed360.image.ImageUtils;
+
 public class VRViewActivity extends VRActivity {
     private final static String TAG = "VRViewActivity";
     private VRViewRenderer mRenderer;
@@ -42,8 +46,20 @@ public class VRViewActivity extends VRActivity {
 
         mRenderer = new VRViewRenderer(this);
         setRenderer(mRenderer);
-        setConvertTapIntoTrigger(true);
     }
+    @Override
+    public void onStart() {
+        super.onStart();
+        setConvertTapIntoTrigger(true);
+
+        try {
+            ImageUtils.loadVRImages(this,ImageUtils.MODE_EVALUATION);
+        } catch (IllegalStateException | IOException e) {
+            //TODO display a message saying that there is no picture
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      * Called when the Cardboard trigger is pulled.

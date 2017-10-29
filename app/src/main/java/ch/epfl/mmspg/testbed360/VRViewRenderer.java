@@ -2,7 +2,6 @@ package ch.epfl.mmspg.testbed360;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.os.Vibrator;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -22,6 +21,7 @@ import java.io.IOException;
 import java.util.Stack;
 import java.util.concurrent.Callable;
 
+import ch.epfl.mmspg.testbed360.image.ImageUtils;
 import ch.epfl.mmspg.testbed360.ui.VRButton;
 import ch.epfl.mmspg.testbed360.ui.VRMenu;
 
@@ -84,7 +84,7 @@ public class VRViewRenderer extends VRRenderer {
 
     private void initSkyBox() {
         try {
-            getCurrentScene().setSkybox(BitmapUtils.loadCubicMap(getContext(), R.drawable.jvet_kiteflite_cubemap32_2250x1500_raw_q00));
+            getCurrentScene().setSkybox(ImageUtils.loadCubicMap(getContext(), R.drawable.jvet_kiteflite_cubemap32_2250x1500_raw_q00));
         } catch (IOException e) {
             Log.e(TAG, "Error setting the skybox texture");
             e.printStackTrace();
