@@ -18,7 +18,6 @@ package ch.epfl.mmspg.testbed360;
 
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -43,8 +42,6 @@ public class VRViewActivity extends VRActivity {
 
         mRenderer = new VRViewRenderer(this);
         setRenderer(mRenderer);
-        
-
         setConvertTapIntoTrigger(true);
     }
 

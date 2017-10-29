@@ -18,6 +18,7 @@ import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.util.OnFPSUpdateListener;
 import org.rajawali3d.vr.renderer.VRRenderer;
 
+import java.io.IOException;
 import java.util.Stack;
 import java.util.concurrent.Callable;
 
@@ -83,8 +84,8 @@ public class VRViewRenderer extends VRRenderer {
 
     private void initSkyBox() {
         try {
-            getCurrentScene().setSkybox(R.drawable.jvet_kiteflite_cmp_3000x2250_raw_q00);
-        } catch (ATexture.TextureException e) {
+            getCurrentScene().setSkybox(BitmapUtils.loadCubicMap(getContext(), R.drawable.jvet_kiteflite_cubemap32_2250x1500_raw_q00));
+        } catch (IOException e) {
             Log.e(TAG, "Error setting the skybox texture");
             e.printStackTrace();
         }
@@ -122,7 +123,7 @@ public class VRViewRenderer extends VRRenderer {
                     //us here ~120FPS which seems way too much!
                     //also rounding to display to the nearest .5, hence to avoid redrawing too often
                     // this button which would make the FPS go down ironically !
-                    fpsButton.setText("FPS:"+ Math.round(fps) / 2.0);
+                    fpsButton.setText("FPS:" + Math.round(fps) / 2.0);
                 }
             });
             menu.addButton(fpsButton);
@@ -206,14 +207,7 @@ public class VRViewRenderer extends VRRenderer {
 
         mode = MODE_CUBIC;
         sphere.setVisible(false);
-
-        try {
-            getCurrentScene().updateSkybox(R.drawable.jvet_kiteflite_cmp_3000x2250_raw_q00);
-            menu.getButton(0).setText("Cubic");
-        } catch (Exception e) {
-            Log.e(TAG, "Error updating the skybox texture");
-            e.printStackTrace();
-        }
+        menu.getButton(0).setText("Cubic");
     }
 
     /**
