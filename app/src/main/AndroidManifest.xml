@@ -7,8 +7,11 @@
         android:required="true" />
     <!-- Required for vibration feedback when the trigger action is performed. -->
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!-- Required to read the paired viewer's distortion parameters. -->
+
+    <!-- Required to read images and write tracks-->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <!-- Make accelerometer and gyroscope hard requirements for good head tracking. -->
     <uses-feature

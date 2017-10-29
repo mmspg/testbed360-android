@@ -194,7 +194,12 @@ public final class ImageUtils {
         ArrayList<VRImage> vrImages = new ArrayList<>();
 
         for (File imgFile : imgFiles) {
-            vrImages.add(new VRImage(imgFile));
+            try {
+                Log.d(TAG, "Reading file " + imgFile.getName() + "...");
+                vrImages.add(new VRImage(imgFile));
+            }catch (IllegalArgumentException e){
+                Log.d(TAG,"File name "+imgFile.getName()+" does not match");
+            }
         }
         return vrImages;
     }

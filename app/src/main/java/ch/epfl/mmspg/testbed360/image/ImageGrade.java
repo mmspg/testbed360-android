@@ -54,6 +54,10 @@ public enum ImageGrade {
         }
     }
 
+    public int toInt(){
+        return grade;
+    }
+
     /**
      * Helper method to get an {@link ImageGrade} from its grade value. Can be used when parsing data,
      * we can then only store {@link #grade} and retrieve the {@link ImageGrade} later.
