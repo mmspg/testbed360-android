@@ -56,9 +56,9 @@ public class VRViewActivity extends VRActivity {
         setConvertTapIntoTrigger(true);
 
         try {
-            List<VRImage> list = ImageUtils.loadVRImages(this, ImageUtils.MODE_EVALUATION);
-            ImageUtils.distinctShuffle(list);
-        } catch (IllegalStateException | IOException e) {
+            List<VRImage> list = ImageUtils.loadVRImages(this, VRScene.MODE_EVALUATION);
+            list = ImageUtils.distinctShuffle(list);
+        } catch (IllegalStateException e) {
             //TODO display a message saying that there is no picture
             e.printStackTrace();
         }

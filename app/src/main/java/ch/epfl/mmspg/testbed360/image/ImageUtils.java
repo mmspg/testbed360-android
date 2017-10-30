@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +21,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+
+import static ch.epfl.mmspg.testbed360.VRScene.MODE_EVALUATION;
+import static ch.epfl.mmspg.testbed360.VRScene.MODE_TRAINING;
 
 /**
  * Helper class including various methods used to decode and manipulate {@link Bitmap}s, but also
@@ -31,9 +35,6 @@ import java.util.List;
 
 public final class ImageUtils {
     private final static String TAG = "ImageUtils";
-
-    public final static int MODE_TRAINING = 0;
-    public final static int MODE_EVALUATION = 1;
 
     private final static String EVALUATION_DIR = "evaluation";
     private final static String TRAINING_DIR = "training";
@@ -67,19 +68,47 @@ public final class ImageUtils {
     }
 
     /**
+     * See {@link #loadCubicMap(Context, InputStream)}
+     *
+     * @param context    {@link Context} of the app to load the resource
+     * @param resourceId the id of the resource containing the cube map to decode
+     * @return a {@link Bitmap} array of length 6, containing each faces of the cube, or containing null
+     * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, float, float, float, float)}
+     * @throws IOException if the image format is not supported or can not be decoded. (see {@link BitmapRegionDecoder#newInstance(InputStream, boolean)}
+     */
+    @NonNull
+    public static Bitmap[] loadCubicMap(@NonNull Context context, int resourceId) throws IOException {
+        return loadCubicMap(context,context.getResources().openRawResource(resourceId));
+    }
+
+    /**
+     * See {@link #loadCubicMap(Context, InputStream)}
+
+     * @param context    {@link Context} of the app to load the resource
+     * @param image the image containing the {@link VRImage#file} to read from
+     * @return a {@link Bitmap} array of length 6, containing each faces of the cube, or containing null
+     * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, float, float, float, float)}
+     * @throws IOException if the image format is not supported or can not be decoded. (see {@link BitmapRegionDecoder#newInstance(InputStream, boolean)}
+     */
+    @NonNull
+    public static Bitmap[] loadCubicMap(@NonNull Context context,@NonNull VRImage image) throws IOException {
+        return loadCubicMap(context,new FileInputStream(image.getFile()));
+    }
+
+    /**
      * Helper methods to load a cube map image into an array of {@link Bitmap}s. The order of faces
      * is : left, right, top, bottom, back, front
      *
      * @param context    {@link Context} of the app to load the resource
-     * @param resourceId the id of the resource containing the cube map to decode
-     * @return a {@link Bitmap} array of length, containing each faces of the cube, or containing null
+     * @param stream the stream to read the image from. This methods closes it when done.
+     * @return a {@link Bitmap} array of length 6, containing each faces of the cube, or containing null
      * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, float, float, float, float)}
      * @throws IOException if the image format is not supported or can not be decoded. (see {@link BitmapRegionDecoder#newInstance(InputStream, boolean)}
      */
-    public static Bitmap[] loadCubicMap(Context context, int resourceId) throws IOException {
+    @NonNull
+    public static Bitmap[] loadCubicMap(@NonNull Context context, @NonNull InputStream stream) throws IOException {
         Bitmap[] bitmapCube = new Bitmap[6];
-        InputStream is = context.getResources().openRawResource(resourceId);
-        BitmapRegionDecoder decoder = BitmapRegionDecoder.newInstance(is, false);
+        BitmapRegionDecoder decoder = BitmapRegionDecoder.newInstance(stream, false);
         float hPadding = 1f / 3f;
         float vPadding = 1f / 2f;
 
@@ -135,7 +164,7 @@ public final class ImageUtils {
                 vPadding
         );
 
-        is.close();
+        stream.close();
         decoder.recycle();
 
         return bitmapCube;
@@ -155,16 +184,28 @@ public final class ImageUtils {
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
-    public static List<VRImage> loadVRImages(@NonNull Context context, int mode) throws IllegalStateException, IOException {
+    /**
+     * Reads from external storage all {@link VRImage}s associated to the given mode. Also inits the
+     * dir if it does not exists, along with an "init" file that is here only to make Android media
+     * scanner discover this folder, so that it can be used in USB MTP (see issue https://issuetracker.google.com/issues/37071807)
+     * @param context {@link Context} to be used to load {@link VRImage}s
+     * @param mode the mode wanted, corresponds to {@link ch.epfl.mmspg.testbed360.VRScene#MODE_EVALUATION}
+     *             or {@link ch.epfl.mmspg.testbed360.VRScene#MODE_TRAINING}
+     * @return a {@link List} containing all {@link VRImage}s for the given {@param mode}
+     * @throws IllegalStateException if the directory does not contain any image, or if there was a
+     * permission while trying to read an image (see {@link VRImage#VRImage(File)}
+     */
+    @NonNull
+    public static List<VRImage> loadVRImages(@NonNull Context context, int mode) throws IllegalStateException {
         File dataDir = context.getExternalFilesDir(null);
         File imgDir;
         switch (mode) {
             case MODE_TRAINING:
-                //TODO implement different sessions loading
+                //TODO implement modular sessions loading
                 imgDir = new File(dataDir, TRAINING_DIR);
                 break;
             case MODE_EVALUATION:
-                //TODO implement different sessions loading
+                //TODO implement modular sessions loading
                 imgDir = new File(dataDir, EVALUATION_DIR);
                 break;
             default:
@@ -176,8 +217,7 @@ public final class ImageUtils {
         Log.d(TAG, "Writing to " + init);
         try (FileOutputStream out = new FileOutputStream(init)) {
             init.createNewFile();
-            String hello = "hello world";
-            out.write(hello.getBytes());
+            out.write("0".getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }

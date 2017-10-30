@@ -1,9 +1,14 @@
 package ch.epfl.mmspg.testbed360.image;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,7 +47,7 @@ public final class VRImage {
     /**
      * An {@link VRImageType} representing the type of the image
      */
-    private VRImageType vrImgType;
+    private VRImageType vrImageType;
 
     /**
      * A {@link String} representing the name of the author
@@ -100,7 +105,7 @@ public final class VRImage {
 
         author = matcher.group(1);
         title = matcher.group(2);
-        vrImgType = VRImageType.fromName(matcher.group(3));
+        vrImageType = VRImageType.fromName(matcher.group(3));
         width = Integer.parseInt(matcher.group(4));
         height = Integer.parseInt(matcher.group(5));
 
@@ -119,11 +124,23 @@ public final class VRImage {
         }
     }
 
+    @Nullable
+    public Bitmap[] getBitmap(@NonNull Context context) throws IOException {
+        switch (vrImageType) {
+            case CUBIC:
+                return ImageUtils.loadCubicMap(context, this);
+            case EQUIRECTANGULAR:
+                return new Bitmap[]{BitmapFactory.decodeFile(file.getAbsolutePath(),new BitmapFactory.Options())};
+            default:
+                return null;
+        }
+    }
+
     @Override
     public String toString() {
         return "title=" + title +
                 ", author=" + author +
-                ", vrType=" + vrImgType +
+                ", vrType=" + vrImageType +
                 ", dim=" + width + 'x' + height +
                 ", codec=" + codec +
                 ", quality=" + quality +
@@ -143,7 +160,7 @@ public final class VRImage {
     /**
      * Builds and returns a slug. A slug is useful to know if two {@link VRImage}s represents
      * the same thing (i.e. image taken at the same spot, same time) even if they might differ of
-     * {@link #vrImgType} or any other field. We consider here that having the same {@link #author}
+     * {@link #vrImageType} or any other field. We consider here that having the same {@link #author}
      * and {@link #title} for two pictures means they represents the same thing.
      * see {@link ImageUtils#distinctShuffle(List)}
      *
@@ -151,5 +168,17 @@ public final class VRImage {
      */
     public String getSlug() {
         return author + ":" + title;
+    }
+
+    public VRImageType getVrImageType() {
+        return vrImageType;
+    }
+
+    public ImageGrade getGrade() {
+        return grade;
+    }
+
+    public File getFile() {
+        return file;
     }
 }
