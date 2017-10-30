@@ -4,11 +4,14 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.io.File;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** A {@link VRImage} is a 360° image that will be assessed in this app. It is defined by a {@link File}
+/**
+ * A {@link VRImage} is a 360° image that will be assessed in this app. It is defined by a {@link File}
  * that links to the image, but also by various properties such as codec, quality, grade etc...
+ *
  * @author Louis-Maxence Garret <louis-maxence.garret@epfl.ch>
  * @date 29/10/2017
  */
@@ -17,10 +20,10 @@ public final class VRImage {
     private final static String TAG = "VRImage";
 
     private final static int UNKNOWN_QUALITY = -1;
-    private final static int NAME_PATTERN_GROUP_COUNT = 7;
+    private final static int MIN_PATTERN_GROUP_COUNT = 6;
     private final static String GRADE_PREFIX = "grade";
     private final static String QUALITY_PREFIX = "q";
-    private final static Pattern NAME_PATTERN = Pattern.compile("(.*)_(.*)_(.*)_(\\d{1,6})x(\\d{1,6})_(.*)_(.*)\\.(png|jpg|jpeg)");
+    private final static Pattern NAME_PATTERN = Pattern.compile("(.*)_(.*)_(.*)_(\\d{1,5})x(\\d{1,5})_(?:(.*)_)?(.*)\\.(?:png|jpg|jpeg)");
 
     /**
      * {@link File} containing this {@link VRImage}
@@ -64,6 +67,7 @@ public final class VRImage {
 
     /**
      * Creates a new {@link VRImage} based on the given {@link File}
+     *
      * @param file the file used to initialize the {@link VRImage} properties
      * @throws IllegalStateException if it was not possible to reade the given file
      */
@@ -76,31 +80,38 @@ public final class VRImage {
         }
         this.file = file;
         initFromName(file.getName());
-        Log.i(TAG,"Loaded img: "+this);
+        Log.i(TAG, "Loaded img: " + this);
     }
 
     /**
      * Attempts to match the given name against the {@link #NAME_PATTERN} to extract some properties
      * like the author name, the image resolution, a predefined {@link ImageGrade} or simply
      * the {@link VRImageType}
+     *
      * @param name the file name of the image
      */
     private void initFromName(@NonNull String name) {
         Matcher matcher = NAME_PATTERN.matcher(name);
 
 
-        if (!matcher.matches() || matcher.groupCount() < NAME_PATTERN_GROUP_COUNT) {
+        if (!matcher.matches() || matcher.groupCount() < MIN_PATTERN_GROUP_COUNT) {
             throw new IllegalArgumentException("Given name does not match pattern, name=" + name);
         }
 
         author = matcher.group(1);
         title = matcher.group(2);
-        vrImgType = VRImageType.fromSlug(matcher.group(3));
+        vrImgType = VRImageType.fromName(matcher.group(3));
         width = Integer.parseInt(matcher.group(4));
         height = Integer.parseInt(matcher.group(5));
-        codec = matcher.group(6);
 
-        String gradeOrQuality = matcher.group(7);
+        int gradeOrQualIndex = 6;
+        if (matcher.groupCount() == MIN_PATTERN_GROUP_COUNT + 1) {
+            //in this case we have a matching codec, thus the grade/quality group index must
+            //be incremented
+            codec = matcher.group(6);
+            gradeOrQualIndex++;
+        }
+        String gradeOrQuality = matcher.group(gradeOrQualIndex);
         if (gradeOrQuality.startsWith(GRADE_PREFIX)) {
             grade = ImageGrade.fromGrade(Integer.parseInt(gradeOrQuality.substring(GRADE_PREFIX.length())));
         } else if (gradeOrQuality.startsWith(QUALITY_PREFIX)) {
@@ -109,16 +120,36 @@ public final class VRImage {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return "title=" + title +
                 ", author=" + author +
                 ", vrType=" + vrImgType +
                 ", dim=" + width + 'x' + height +
                 ", codec=" + codec +
                 ", quality=" + quality +
-                (grade!= null ? ", grade=" + grade.toInt() : "")
+                (grade != null ? ", grade=" + grade.toInt() : "")
                 ;
     }
 
 
+    public String getTitle() {
+        return title;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    /**
+     * Builds and returns a slug. A slug is useful to know if two {@link VRImage}s represents
+     * the same thing (i.e. image taken at the same spot, same time) even if they might differ of
+     * {@link #vrImgType} or any other field. We consider here that having the same {@link #author}
+     * and {@link #title} for two pictures means they represents the same thing.
+     * see {@link ImageUtils#distinctShuffle(List)}
+     *
+     * @return a {@link String} containing the {@link #author} and {@link #title} concatenated.
+     */
+    public String getSlug() {
+        return author + ":" + title;
+    }
 }
