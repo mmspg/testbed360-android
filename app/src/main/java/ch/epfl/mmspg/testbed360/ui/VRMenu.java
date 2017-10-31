@@ -116,6 +116,4 @@ public class VRMenu extends RectangularPrism {
     public void setDistance(float distance) {
         this.distance = distance;
     }
-
-
 }

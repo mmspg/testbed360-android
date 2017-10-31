@@ -14,6 +14,7 @@ import java.util.concurrent.Callable;
 import ch.epfl.mmspg.testbed360.image.ImageUtils;
 import ch.epfl.mmspg.testbed360.ui.VRButton;
 import ch.epfl.mmspg.testbed360.ui.VRMenu;
+import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
 
 /**
  * @author Louis-Maxence Garret <louis-maxence.garret@epfl.ch>
@@ -36,53 +37,8 @@ public final class WelcomeScene extends VRScene {
 
     @Override
     protected void initMenu(final Renderer renderer) {
-        menu = new VRMenu(20);
-
-        try {
-            VRButton welcomeButton = new VRButton(renderer.getContext(), "Welcome !", 10f, 2f);
-
-            final VRButton fpsButton = new VRButton(renderer.getContext(),
-                    "",
-                    10f,
-                    2f);
-            fpsButton.setName("FPSButton");
-            renderer.setFPSUpdateListener(new OnFPSUpdateListener() {
-                @Override
-                public void onFPSUpdate(double fps) {
-                    //pretty sure we have to divide per two because this method was thought
-                    //for non VR rendering, hence we render twice as much image, which would give
-                    //us here ~120FPS which seems way too much!
-                    //also rounding to display to the nearest .5, hence to avoid redrawing too often
-                    // this button which would make the FPS go down ironically !
-                    fpsButton.setText("FPS:" + Math.round(fps) / 2.0);
-                }
-            });
-            final VRButton startButton = new VRButton(renderer.getContext(),
-                    "Start !",
-                    10f,
-                    2f);
-            startButton.setName("StartButton");
-            startButton.setOnTriggerAction(new Callable() {
-                @Override
-                public Object call() throws Exception {
-                    try {
-                        renderer.switchScene(new VRScene(renderer, VRViewActivity.nextTraining()));
-                    } catch (EmptyStackException e) {
-                        startButton.setText("No new image");
-                    }
-                    return null;
-                }
-            });
-            menu.addButton(welcomeButton);
-            menu.addButton(fpsButton);
-            menu.addButton(startButton);
-
-
-        } catch (ATexture.TextureException e) {
-            e.printStackTrace();
-        }
-
-        addChild(menu);
+        menu = VRMenuFactory.buildWelcomeMenu(renderer);
         menu.setVisible(true);
+        addChild(menu);
     }
 }

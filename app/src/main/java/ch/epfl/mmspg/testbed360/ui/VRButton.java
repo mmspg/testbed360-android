@@ -47,6 +47,7 @@ public class VRButton extends RectangularPrism {
 
     private final static int BUTTON_BG_COLOR = Color.argb(55, 55, 55, 55);
     private final static int BUTTON_HOVER_BG_COLOR = Color.argb(180, 45, 45, 45);
+    private final static int BUTTON_SELECTED_BG_COLOR = Color.argb(255, 35, 35, 35);
 
     private final static int VIBRATION_HOVER_MS = 20;
     private final static int VIBRATION_PRESS_MS = 50;
@@ -67,6 +68,7 @@ public class VRButton extends RectangularPrism {
     private String text;
 
     private boolean isHovered = false;
+    private boolean isSelected = false;
     private Vibrator vibrator;
 
     private VRMenu parentMenu;
@@ -151,11 +153,13 @@ public class VRButton extends RectangularPrism {
         //here we check the previous status, so that we do not repaint bitmap uselessly
         if (!this.isHovered && isHovered) {
             vibrate(VIBRATION_HOVER_MS);
-            layoutView.setBackgroundColor(BUTTON_HOVER_BG_COLOR);
-            redraw();
+            if (!isSelected) {
+                setBackground(BUTTON_HOVER_BG_COLOR);
+            }
         } else if (this.isHovered && !isHovered) {
-            layoutView.setBackgroundColor(BUTTON_BG_COLOR);
-            redraw();
+            if (!isSelected) {
+                setBackground(BUTTON_BG_COLOR);
+            }
         }
         this.isHovered = isHovered;
     }
@@ -172,6 +176,7 @@ public class VRButton extends RectangularPrism {
         if (isHovered) {
             vibrator.vibrate(VIBRATION_PRESS_MS);
 
+            setSelected(!isSelected);
             if (onTriggerAction != null) {
                 try {
                     onTriggerAction.call();
@@ -197,6 +202,23 @@ public class VRButton extends RectangularPrism {
         if (vibrator != null) {
             vibrator.vibrate(ms);
         }
+    }
+
+    /**
+     * Updates the {@link #layoutView}'s background color if its not null, and triggers a {@link #redraw()}
+     *
+     * @param color the new background color, should be of type {@link Bitmap.Config#ARGB_8888}
+     */
+    private void setBackground(int color) {
+        if (layoutView != null) {
+            layoutView.setBackgroundColor(color);
+            redraw();
+        }
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
+        setBackground(isSelected ? BUTTON_SELECTED_BG_COLOR : BUTTON_HOVER_BG_COLOR);
     }
 
     public VRMenu getParentMenu() {
