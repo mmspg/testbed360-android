@@ -10,6 +10,7 @@ import android.util.Log;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -118,7 +119,11 @@ public final class VRImage {
         }
         String gradeOrQuality = matcher.group(gradeOrQualIndex);
         if (gradeOrQuality.startsWith(GRADE_PREFIX)) {
-            grade = ImageGrade.fromGrade(Integer.parseInt(gradeOrQuality.substring(GRADE_PREFIX.length())));
+            try {
+                grade = ImageGrade.fromGrade(Integer.parseInt(gradeOrQuality.substring(GRADE_PREFIX.length())));
+            }catch (NoSuchElementException e){
+                e.printStackTrace();
+            }
         } else if (gradeOrQuality.startsWith(QUALITY_PREFIX)) {
             quality = Integer.parseInt(gradeOrQuality.substring(QUALITY_PREFIX.length()));
         }

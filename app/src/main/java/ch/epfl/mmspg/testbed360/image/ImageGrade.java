@@ -18,11 +18,11 @@ import ch.epfl.mmspg.testbed360.R;
 
 public enum ImageGrade {
     NONE(R.string.grade_none,-1),
-    VERY_BAD(R.string.grade_0,0),
-    BAD(R.string.grade_1,1),
-    MEDIUM(R.string.grade_2,2),
-    GOOD(R.string.grade_3,3),
-    EXCELLENT(R.string.grade_4,4);
+    VERY_BAD(R.string.grade_0,1),
+    BAD(R.string.grade_1,2),
+    MEDIUM(R.string.grade_2,3),
+    GOOD(R.string.grade_3,4),
+    EXCELLENT(R.string.grade_4,5);
 
     private final static String TAG = "ImageGrade";
     private int strId;

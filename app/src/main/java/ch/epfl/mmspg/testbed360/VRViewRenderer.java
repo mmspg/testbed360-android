@@ -2,6 +2,7 @@ package ch.epfl.mmspg.testbed360;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -9,34 +10,17 @@ import com.google.vrtoolkit.cardboard.Eye;
 
 import org.rajawali3d.Object3D;
 import org.rajawali3d.materials.Material;
-import org.rajawali3d.materials.textures.ATexture;
-import org.rajawali3d.materials.textures.Texture;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Line3D;
-import org.rajawali3d.primitives.Sphere;
-import org.rajawali3d.util.OnFPSUpdateListener;
 import org.rajawali3d.vr.renderer.VRRenderer;
 
-import java.io.IOException;
 import java.util.Stack;
-import java.util.concurrent.Callable;
-
-import ch.epfl.mmspg.testbed360.image.ImageUtils;
-import ch.epfl.mmspg.testbed360.ui.VRButton;
-import ch.epfl.mmspg.testbed360.ui.VRMenu;
 
 public class VRViewRenderer extends VRRenderer {
     //TODO remove or set false this in production, only for debugging
-    private final static boolean ENABLE_TOASTS = true;
     private final static boolean RENDER_AXIS = true;
 
     private final static String TAG = "VRViewRenderer";
-    private final static int MODE_EQUIRECTANGULAR = 0;
-    private final static int MODE_CUBIC = 1;
-
-    private int mode = MODE_EQUIRECTANGULAR;
-    private Sphere sphere;
-    private VRMenu menu;
 
     private Vector3 mForwardVec = new Vector3(0);
     private Vector3 mHeadTranslation = new Vector3(0);
@@ -47,31 +31,11 @@ public class VRViewRenderer extends VRRenderer {
 
     @Override
     public void initScene() {
-        initSphere();
-        initSkyBox();
-        initMenu();
+        switchScene(new WelcomeScene(this));
         initAxis();
 
         getCurrentCamera().setPosition(Vector3.ZERO);
         getCurrentCamera().setFieldOfView(100);
-    }
-
-    private void initSphere() {
-
-        Material material = new Material();
-        material.setColor(0);
-
-        try {
-            material.addTexture(new Texture("photo", R.drawable.jvet_kiteflite_equirec_3000x1500_raw_q00));
-        } catch (ATexture.TextureException e) {
-            throw new RuntimeException(e);
-        }
-
-        sphere = new Sphere(50, 64, 32);
-        sphere.setScaleX(-1); //otherwise image is inverted
-        sphere.setMaterial(material);
-
-        getCurrentScene().addChild(sphere);
     }
 
     private void initAxis() {
@@ -83,57 +47,6 @@ public class VRViewRenderer extends VRRenderer {
     }
 
     private void initSkyBox() {
-        try {
-            getCurrentScene().setSkybox(ImageUtils.loadCubicMap(getContext(), R.drawable.jvet_kiteflite_cubemap32_2250x1500_raw_q00));
-        } catch (IOException e) {
-            Log.e(TAG, "Error setting the skybox texture");
-            e.printStackTrace();
-        }
-    }
-
-    private void initMenu() {
-        menu = new VRMenu(20);
-
-        try {
-            VRButton button = new VRButton(getContext(), "Equirectangular", 10f, 2f);
-            //button.setPosition(0, 0, -20);
-            button.setOnTriggerAction(new Callable() {
-                @Override
-                public Object call() throws Exception {
-                    if (getMode() == VRViewRenderer.MODE_EQUIRECTANGULAR) {
-                        setCubicMode();
-                    } else if (getMode() == VRViewRenderer.MODE_CUBIC) {
-                        setEquirectangularMode();
-                    }
-                    return null;
-                }
-            });
-            menu.addButton(button);
-
-            final VRButton fpsButton = new VRButton(getContext(),
-                    "This is a test ! No action if pressed",
-                    10f,
-                    2f);
-            fpsButton.setName("FPSButton");
-            setFPSUpdateListener(new OnFPSUpdateListener() {
-                @Override
-                public void onFPSUpdate(double fps) {
-                    //pretty sure we have to divide per two because this method was thought
-                    //for non VR rendering, hence we render twice as much image, which would give
-                    //us here ~120FPS which seems way too much!
-                    //also rounding to display to the nearest .5, hence to avoid redrawing too often
-                    // this button which would make the FPS go down ironically !
-                    fpsButton.setText("FPS:" + Math.round(fps) / 2.0);
-                }
-            });
-            menu.addButton(fpsButton);
-
-
-        } catch (ATexture.TextureException e) {
-            e.printStackTrace();
-        }
-
-        getCurrentScene().addChild(menu);
 
     }
 
@@ -153,7 +66,11 @@ public class VRViewRenderer extends VRRenderer {
         getCurrentCamera().setOrientation(mCurrentEyeOrientation);
         getCurrentCamera().setPosition(mCameraPosition);
         getCurrentCamera().getPosition().add(mCurrentEyeMatrix.getTranslation());
-        menu.onDrawing(this);
+
+        if (getCurrentVRScene() != null) {
+            getCurrentVRScene().onDrawing(this);
+        }
+
         super.onRenderFrame(null);
     }
 
@@ -192,39 +109,17 @@ public class VRViewRenderer extends VRRenderer {
 
     public void onCardboardTrigger() {
         Log.d(TAG, "Cardboard trigger");
-        if (menu != null) {
-            menu.onCardboardTrigger();
+        if (getCurrentVRScene() != null) {
+            getCurrentVRScene().onCardboardTrigger();
         }
     }
 
-    /**
-     * Changes the mode of projection to cubic. Basically just changes the
-     * {@link VRViewRenderer#mode} value to {@link VRViewRenderer#MODE_CUBIC} and sets
-     * the sphere as invisible
-     */
-    private void setCubicMode() {
-        Log.i(TAG, "Changing mode to : CUBIC_MODE");
-
-        mode = MODE_CUBIC;
-        sphere.setVisible(false);
-        menu.getButton(0).setText("Cubic");
-    }
-
-    /**
-     * Changes the mode of projection to equirectangular. Basically just changes the
-     * {@link VRViewRenderer#mode} value to {@link VRViewRenderer#MODE_EQUIRECTANGULAR} and sets
-     * the sphere as visible
-     */
-    private void setEquirectangularMode() {
-        Log.i(TAG, "Changing mode to : EQUIRECTANGULAR");
-
-        mode = MODE_EQUIRECTANGULAR;
-        sphere.setVisible(true);
-        menu.getButton(0).setText("Equirectangular");
-    }
-
-    public int getMode() {
-        return mode;
+    @Nullable
+    private VRScene getCurrentVRScene() {
+        if (getCurrentScene() instanceof VRScene) {
+            return (VRScene) getCurrentScene();
+        }
+        return null;
     }
 
 

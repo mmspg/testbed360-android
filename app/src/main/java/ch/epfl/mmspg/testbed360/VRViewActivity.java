@@ -23,8 +23,8 @@ import android.view.WindowManager;
 
 import org.rajawali3d.vr.VRActivity;
 
-import java.io.IOException;
-import java.util.List;
+import java.util.EmptyStackException;
+import java.util.Stack;
 
 import ch.epfl.mmspg.testbed360.image.ImageUtils;
 import ch.epfl.mmspg.testbed360.image.VRImage;
@@ -32,6 +32,7 @@ import ch.epfl.mmspg.testbed360.image.VRImage;
 public class VRViewActivity extends VRActivity {
     private final static String TAG = "VRViewActivity";
     private VRViewRenderer mRenderer;
+    private static Stack<VRImage> TRAINING_IMAGES = new Stack<>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -56,8 +57,7 @@ public class VRViewActivity extends VRActivity {
         setConvertTapIntoTrigger(true);
 
         try {
-            List<VRImage> list = ImageUtils.loadVRImages(this, VRScene.MODE_EVALUATION);
-            list = ImageUtils.distinctShuffle(list);
+            TRAINING_IMAGES.addAll(ImageUtils.distinctShuffle(ImageUtils.loadVRImages(this, VRScene.MODE_TRAINING)));
         } catch (IllegalStateException e) {
             //TODO display a message saying that there is no picture
             e.printStackTrace();
@@ -81,5 +81,9 @@ public class VRViewActivity extends VRActivity {
     @Override
     public void onResume() {
         super.onResume();
+    }
+
+    public static VRImage nextTraining() throws EmptyStackException {
+        return TRAINING_IMAGES.pop();
     }
 }

@@ -1,7 +1,5 @@
 package ch.epfl.mmspg.testbed360.ui;
 
-import android.util.Log;
-
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.RectangularPrism;
@@ -30,7 +28,7 @@ public class VRMenu extends RectangularPrism {
         super(0, 0, 0);
 
         //TODO implement automatic height compensation when adding buttons
-        setPosition(new Vector3(0,2,-distance));
+        setPosition(new Vector3(0, 2, -distance));
         this.distance = distance;
 
         Material prismMaterial = new Material();
@@ -80,7 +78,7 @@ public class VRMenu extends RectangularPrism {
     public void onDrawing(VRViewRenderer renderer) {
         setRotY(180 + renderer.getCurrentCamera().getRotY() * 180.0 / Math.PI);
 
-        if(following) {
+        if (following) {
             setX(distance * Math.sin(renderer.getCurrentCamera().getRotY()));
             setZ(-distance * Math.cos(renderer.getCurrentCamera().getRotY()));
         }
@@ -90,7 +88,7 @@ public class VRMenu extends RectangularPrism {
             if (consumed) {
                 button.setHovered(false);
             } else {
-                consumed = renderer.isLookingAtObject(button,5);
+                consumed = renderer.isLookingAtObject(button, 5);
                 button.setHovered(consumed);
             }
             /*Vector3 pos = button.getPosition();

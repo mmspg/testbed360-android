@@ -78,29 +78,29 @@ public final class ImageUtils {
      */
     @NonNull
     public static Bitmap[] loadCubicMap(@NonNull Context context, int resourceId) throws IOException {
-        return loadCubicMap(context,context.getResources().openRawResource(resourceId));
+        return loadCubicMap(context, context.getResources().openRawResource(resourceId));
     }
 
     /**
      * See {@link #loadCubicMap(Context, InputStream)}
-
-     * @param context    {@link Context} of the app to load the resource
-     * @param image the image containing the {@link VRImage#file} to read from
+     *
+     * @param context {@link Context} of the app to load the resource
+     * @param image   the image containing the {@link VRImage#file} to read from
      * @return a {@link Bitmap} array of length 6, containing each faces of the cube, or containing null
      * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, float, float, float, float)}
      * @throws IOException if the image format is not supported or can not be decoded. (see {@link BitmapRegionDecoder#newInstance(InputStream, boolean)}
      */
     @NonNull
-    public static Bitmap[] loadCubicMap(@NonNull Context context,@NonNull VRImage image) throws IOException {
-        return loadCubicMap(context,new FileInputStream(image.getFile()));
+    public static Bitmap[] loadCubicMap(@NonNull Context context, @NonNull VRImage image) throws IOException {
+        return loadCubicMap(context, new FileInputStream(image.getFile()));
     }
 
     /**
      * Helper methods to load a cube map image into an array of {@link Bitmap}s. The order of faces
      * is : left, right, top, bottom, back, front
      *
-     * @param context    {@link Context} of the app to load the resource
-     * @param stream the stream to read the image from. This methods closes it when done.
+     * @param context {@link Context} of the app to load the resource
+     * @param stream  the stream to read the image from. This methods closes it when done.
      * @return a {@link Bitmap} array of length 6, containing each faces of the cube, or containing null
      * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, float, float, float, float)}
      * @throws IOException if the image format is not supported or can not be decoded. (see {@link BitmapRegionDecoder#newInstance(InputStream, boolean)}
@@ -188,12 +188,13 @@ public final class ImageUtils {
      * Reads from external storage all {@link VRImage}s associated to the given mode. Also inits the
      * dir if it does not exists, along with an "init" file that is here only to make Android media
      * scanner discover this folder, so that it can be used in USB MTP (see issue https://issuetracker.google.com/issues/37071807)
+     *
      * @param context {@link Context} to be used to load {@link VRImage}s
-     * @param mode the mode wanted, corresponds to {@link ch.epfl.mmspg.testbed360.VRScene#MODE_EVALUATION}
-     *             or {@link ch.epfl.mmspg.testbed360.VRScene#MODE_TRAINING}
+     * @param mode    the mode wanted, corresponds to {@link ch.epfl.mmspg.testbed360.VRScene#MODE_EVALUATION}
+     *                or {@link ch.epfl.mmspg.testbed360.VRScene#MODE_TRAINING}
      * @return a {@link List} containing all {@link VRImage}s for the given {@param mode}
      * @throws IllegalStateException if the directory does not contain any image, or if there was a
-     * permission while trying to read an image (see {@link VRImage#VRImage(File)}
+     *                               permission while trying to read an image (see {@link VRImage#VRImage(File)}
      */
     @NonNull
     public static List<VRImage> loadVRImages(@NonNull Context context, int mode) throws IllegalStateException {

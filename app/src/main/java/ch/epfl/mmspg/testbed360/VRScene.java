@@ -3,7 +3,7 @@ package ch.epfl.mmspg.testbed360;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
-import android.util.Log;
+import android.support.annotation.Nullable;
 
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.textures.ATexture;
@@ -14,9 +14,7 @@ import org.rajawali3d.scene.Scene;
 import org.rajawali3d.util.OnFPSUpdateListener;
 
 import java.io.IOException;
-import java.util.concurrent.Callable;
 
-import ch.epfl.mmspg.testbed360.image.ImageUtils;
 import ch.epfl.mmspg.testbed360.image.VRImage;
 import ch.epfl.mmspg.testbed360.ui.VRButton;
 import ch.epfl.mmspg.testbed360.ui.VRMenu;
@@ -34,22 +32,25 @@ public class VRScene extends Scene {
 
     private VRImage vrImage;
     private Sphere sphere;
-    private VRMenu menu;
+    protected VRMenu menu;
 
-    public VRScene(@NonNull Renderer renderer, @NonNull VRImage image) {
+    public VRScene(@NonNull Renderer renderer, @Nullable VRImage image) {
         super(renderer);
         this.vrImage = image;
 
-        switch (image.getVrImageType()) {
-            case CUBIC:
-                initCube(renderer.getContext());
-                break;
-            case EQUIRECTANGULAR:
-                initSphere(renderer.getContext());
-                break;
-            default:
-                break;
+        if (image != null) {
+            switch (image.getVrImageType()) {
+                case CUBIC:
+                    initCube(renderer.getContext());
+                    break;
+                case EQUIRECTANGULAR:
+                    initSphere(renderer.getContext());
+                    break;
+                default:
+                    break;
+            }
         }
+        initMenu(renderer);
     }
 
     private void initSphere(@NonNull Context context) {
@@ -87,12 +88,11 @@ public class VRScene extends Scene {
         }
     }
 
-    private void initMenu(Renderer renderer) {
+    protected void initMenu(Renderer renderer) {
         menu = new VRMenu(20);
 
         try {
             VRButton button = new VRButton(renderer.getContext(), vrImage.getVrImageType().toString(), 10f, 2f);
-            menu.addButton(button);
 
             final VRButton fpsButton = new VRButton(renderer.getContext(),
                     "This is a test ! No action if pressed",
@@ -110,6 +110,8 @@ public class VRScene extends Scene {
                     fpsButton.setText("FPS:" + Math.round(fps) / 2.0);
                 }
             });
+
+            menu.addButton(button);
             menu.addButton(fpsButton);
 
 
@@ -118,13 +120,23 @@ public class VRScene extends Scene {
         }
 
         addChild(menu);
+        menu.setVisible(false);
 
     }
 
     public void onCardboardTrigger() {
-        Log.d(TAG, "Cardboard trigger");
         if (menu != null) {
-            menu.onCardboardTrigger();
+            if (menu.isVisible()) {
+                menu.onCardboardTrigger();
+            } else {
+                menu.setVisible(true);
+            }
+        }
+    }
+
+    public void onDrawing(VRViewRenderer vrViewRenderer) {
+        if (menu != null && menu.isVisible()) {
+            menu.onDrawing(vrViewRenderer);
         }
     }
 }
