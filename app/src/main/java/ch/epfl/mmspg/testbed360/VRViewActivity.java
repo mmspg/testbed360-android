@@ -23,7 +23,9 @@ import android.view.WindowManager;
 
 import org.rajawali3d.vr.VRActivity;
 
+import java.util.Collections;
 import java.util.EmptyStackException;
+import java.util.List;
 import java.util.Stack;
 
 import ch.epfl.mmspg.testbed360.image.ImageUtils;
@@ -57,7 +59,9 @@ public class VRViewActivity extends VRActivity {
         setConvertTapIntoTrigger(true);
 
         try {
-            TRAINING_IMAGES.addAll(ImageUtils.distinctShuffle(ImageUtils.loadVRImages(this, VRScene.MODE_TRAINING)));
+            List<VRImage> vrImgs = ImageUtils.distinctShuffle(ImageUtils.loadVRImages(this, VRScene.MODE_TRAINING));
+            Collections.reverse(vrImgs); // we reverse here as it will be inverted in the stack after
+            TRAINING_IMAGES.addAll(vrImgs);
         } catch (IllegalStateException e) {
             //TODO display a message saying that there is no picture
             e.printStackTrace();

@@ -9,9 +9,11 @@ import java.util.concurrent.Callable;
 
 import ch.epfl.mmspg.testbed360.VRScene;
 import ch.epfl.mmspg.testbed360.VRViewActivity;
+import ch.epfl.mmspg.testbed360.image.ImageGrade;
+import ch.epfl.mmspg.testbed360.image.VRImage;
 
 /**
- * This class' goalis to provide methods for building {@link VRMenu} that we use multiple times
+ * This class' goal is to provide methods for building {@link VRMenu} that we use multiple times
  * through the app.
  *
  * @author Louis-Maxence Garret <louis-maxence.garret@epfl.ch>
@@ -19,6 +21,9 @@ import ch.epfl.mmspg.testbed360.VRViewActivity;
  */
 
 public final class VRMenuFactory {
+    private final static float STANDARD_BUTTON_WIDTH = 10f;
+    private final static float STANDARD_BUTTON_HEIGHT = 2f;
+    private final static float STANDARD_MENU_DISTANCE = 20f;
     //TODO remove or set false this in production, only for debugging
     private final static boolean RENDER_FPS = true;
 
@@ -27,7 +32,7 @@ public final class VRMenuFactory {
     }
 
     public static VRMenu buildWelcomeMenu(final Renderer renderer) {
-        VRMenu menu = new VRMenu(20);
+        VRMenu menu = new VRMenu(STANDARD_MENU_DISTANCE);
 
         try {
             //TODO add the tutorial in this button, and store the string value in xml !
@@ -38,8 +43,8 @@ public final class VRMenuFactory {
             }
             final VRButton startButton = new VRButton(renderer.getContext(),
                     "Start training!", //TODO put text in strings.xml
-                    10f,
-                    2f);
+                    STANDARD_BUTTON_WIDTH,
+                    STANDARD_BUTTON_HEIGHT);
             startButton.setName("StartButton");
             startButton.setOnTriggerAction(new Callable() {
                 @Override
@@ -63,8 +68,8 @@ public final class VRMenuFactory {
     private static VRButton buildFPSButton(final Renderer renderer) throws ATexture.TextureException {
         final VRButton fpsButton = new VRButton(renderer.getContext(),
                 "",
-                10f,
-                2f);
+                STANDARD_BUTTON_WIDTH,
+                STANDARD_BUTTON_HEIGHT);
         fpsButton.setName("FPSButton");
         renderer.setFPSUpdateListener(new OnFPSUpdateListener() {
             @Override
@@ -79,5 +84,30 @@ public final class VRMenuFactory {
         });
         fpsButton.setSelectable(false);
         return fpsButton;
+    }
+
+    public static VRMenu buildTrainingGradeMenu(final Renderer renderer, VRImage img) {
+        VRMenu menu = new VRMenu(20);
+        menu.setY(4);
+
+        try {
+            for (ImageGrade grade : ImageGrade.values()) {
+                if (!grade.equals(ImageGrade.NONE)) {
+                    VRButton button = new VRButton(renderer.getContext(),
+                            grade.toString(renderer.getContext()),
+                            STANDARD_BUTTON_WIDTH,
+                            STANDARD_BUTTON_HEIGHT
+                    );
+                    if (img.getGrade().equals(grade)) {
+                        button.setSelected(true);
+                    }
+                    button.setSelectable(false);
+                    menu.addButton(button);
+                }
+            }
+        } catch (ATexture.TextureException e) {
+            e.printStackTrace();
+        }
+        return menu;
     }
 }

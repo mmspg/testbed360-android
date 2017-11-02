@@ -21,6 +21,7 @@ import java.io.IOException;
 import ch.epfl.mmspg.testbed360.image.VRImage;
 import ch.epfl.mmspg.testbed360.ui.VRButton;
 import ch.epfl.mmspg.testbed360.ui.VRMenu;
+import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
 
 /**
  * @author Louis-Maxence Garret <louis-maxence.garret@epfl.ch>
@@ -113,38 +114,17 @@ public class VRScene extends Scene {
     }
 
     protected void initMenu(Renderer renderer) {
-        menu = new VRMenu(20);
-
-        try {
-            VRButton button = new VRButton(renderer.getContext(), vrImage.getVrImageType().toString(), 10f, 2f);
-
-            final VRButton fpsButton = new VRButton(renderer.getContext(),
-                    "This is a test ! No action if pressed",
-                    10f,
-                    2f);
-            fpsButton.setName("FPSButton");
-            renderer.setFPSUpdateListener(new OnFPSUpdateListener() {
-                @Override
-                public void onFPSUpdate(double fps) {
-                    //pretty sure we have to divide per two because this method was thought
-                    //for non VR rendering, hence we render twice as much image, which would give
-                    //us here ~120FPS which seems way too much!
-                    //also rounding to display to the nearest .5, hence to avoid redrawing too often
-                    // this button which would make the FPS go down ironically !
-                    fpsButton.setText("FPS:" + Math.round(fps) / 2.0);
-                }
-            });
-
-            menu.addButton(button);
-            menu.addButton(fpsButton);
-
-
-        } catch (ATexture.TextureException e) {
-            e.printStackTrace();
+        if (vrImage.getGrade() == null) {
+            //evaluation
+            //TODO implement evaluation menu
+            menu = VRMenuFactory.buildTrainingGradeMenu(renderer, vrImage);
+            menu.setVisible(false);
+            addChild(menu);
+        }else {
+            menu = VRMenuFactory.buildTrainingGradeMenu(renderer, vrImage);
+            menu.setVisible(false);
+            addChild(menu);
         }
-
-        addChild(menu);
-        menu.setVisible(false);
 
     }
 
@@ -163,17 +143,17 @@ public class VRScene extends Scene {
         if (menu != null && menu.isVisible()) {
             menu.onDrawing(vrViewRenderer);
         }
-        if(selectionDot != null) {
+        if (selectionDot != null) {
             centerSelectionDot(vrViewRenderer);
         }
     }
 
-    private void centerSelectionDot(@NonNull VRViewRenderer renderer){
+    private void centerSelectionDot(@NonNull VRViewRenderer renderer) {
         headViewMatrix.setAll(renderer.getMHeadViewMatrix());
         headViewMatrix = headViewMatrix.inverse();
         double[] headViewMatrixInv = new double[16];
         headViewMatrix.toArray(headViewMatrixInv);
-        
+
         Matrix.multiplyMV(newDotPos, 0, headViewMatrixInv, 0, initDotPos, 0);
         selectionDot.setPosition(newDotPos[0], newDotPos[1], newDotPos[2]);
 

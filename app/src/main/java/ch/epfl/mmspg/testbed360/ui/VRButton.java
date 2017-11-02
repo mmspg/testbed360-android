@@ -173,15 +173,17 @@ public class VRButton extends RectangularPrism {
      */
     public boolean onCardboardTrigger() {
         if (isHovered) {
-            vibrator.vibrate(VIBRATION_PRESS_MS);
+            if (isSelectable) {
+                vibrate(VIBRATION_PRESS_MS);
 
-            setSelected(!isSelected);
-            if (onTriggerAction != null) {
-                try {
-                    onTriggerAction.call();
-                } catch (Exception e) {
-                    Log.e(TAG, buttonId + ": error executing onTriggerAction");
-                    e.printStackTrace();
+                setSelected(!isSelected);
+                if (onTriggerAction != null) {
+                    try {
+                        onTriggerAction.call();
+                    } catch (Exception e) {
+                        Log.e(TAG, buttonId + ": error executing onTriggerAction");
+                        e.printStackTrace();
+                    }
                 }
             }
             return true;
@@ -216,7 +218,7 @@ public class VRButton extends RectangularPrism {
     }
 
     public void setSelected(boolean selected) {
-        if(isSelectable) {
+        if (isSelectable) {
             isSelected = selected;
             setBackground(isSelected ? BUTTON_SELECTED_BG_COLOR : BUTTON_HOVER_BG_COLOR);
         }

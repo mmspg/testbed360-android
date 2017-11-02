@@ -53,7 +53,7 @@ public final class VRImage {
     /**
      * A {@link String} representing the name of the author
      */
-    private ImageGrade grade;
+    private ImageGrade grade = ImageGrade.NONE;
     /**
      * A {@link String} representing the codec used for this picture
      */
@@ -179,6 +179,7 @@ public final class VRImage {
         return vrImageType;
     }
 
+    @NonNull
     public ImageGrade getGrade() {
         return grade;
     }

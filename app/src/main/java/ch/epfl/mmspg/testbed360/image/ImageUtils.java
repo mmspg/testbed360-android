@@ -340,7 +340,7 @@ public final class ImageUtils {
                     for (VRImage img : groupedVRImages.get(selectedSlug)) {
                         if (!shuffled.contains(img)) {
                             noImg = false;
-                            Log.d(TAG, "\t\tChosen: " + img.getSlug());
+                            Log.d(TAG, "\t\tChosen: " + img);
                             shuffled.add(img);
                             break;
                         }
