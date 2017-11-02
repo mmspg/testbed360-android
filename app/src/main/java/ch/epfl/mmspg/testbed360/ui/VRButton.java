@@ -67,6 +67,7 @@ public class VRButton extends RectangularPrism {
 
     private boolean isHovered = false;
     private boolean isSelected = false;
+    private boolean isSelectable = true;
     private Vibrator vibrator;
 
     private VRMenu parentMenu;
@@ -215,8 +216,10 @@ public class VRButton extends RectangularPrism {
     }
 
     public void setSelected(boolean selected) {
-        isSelected = selected;
-        setBackground(isSelected ? BUTTON_SELECTED_BG_COLOR : BUTTON_HOVER_BG_COLOR);
+        if(isSelectable) {
+            isSelected = selected;
+            setBackground(isSelected ? BUTTON_SELECTED_BG_COLOR : BUTTON_HOVER_BG_COLOR);
+        }
     }
 
     public VRMenu getParentMenu() {
@@ -249,5 +252,9 @@ public class VRButton extends RectangularPrism {
 
     public float getHeight() {
         return height;
+    }
+
+    public void setSelectable(boolean selectable) {
+        isSelectable = selectable;
     }
 }

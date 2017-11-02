@@ -32,7 +32,7 @@ public final class VRMenuFactory {
         try {
             //TODO add the tutorial in this button, and store the string value in xml !
             VRButton welcomeButton = new VRButton(renderer.getContext(), "Welcome !", 10f, 2f);
-
+            welcomeButton.setSelectable(false);
             if (RENDER_FPS) {
                 menu.addButton(buildFPSButton(renderer));
             }
@@ -77,6 +77,7 @@ public final class VRMenuFactory {
                 fpsButton.setText("FPS:" + Math.round(fps) / 2.0);
             }
         });
+        fpsButton.setSelectable(false);
         return fpsButton;
     }
 }

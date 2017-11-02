@@ -41,7 +41,7 @@ public class VRScene extends Scene {
     double[] newDotPos = new double[4];
     double[] initDotPos = {0, 0, -3, 1.0f};
     double[] headViewMatrix_inv = new double[16];
-    Matrix4 headViewMatrix4 = new Matrix4();
+    Matrix4 headViewMatrix = new Matrix4();
 
     public VRScene(@NonNull Renderer renderer, @Nullable VRImage image) {
         super(renderer);
@@ -169,11 +169,12 @@ public class VRScene extends Scene {
     }
 
     private void centerSelectionDot(@NonNull VRViewRenderer renderer){
-        headViewMatrix4.setAll(renderer.getMHeadViewMatrix());
-        headViewMatrix4 = headViewMatrix4.inverse();
-        double[] headViewMatrix_inv = new double[16];
-        headViewMatrix4.toArray(headViewMatrix_inv);
-        Matrix.multiplyMV(newDotPos, 0, headViewMatrix_inv, 0, initDotPos, 0);
+        headViewMatrix.setAll(renderer.getMHeadViewMatrix());
+        headViewMatrix = headViewMatrix.inverse();
+        double[] headViewMatrixInv = new double[16];
+        headViewMatrix.toArray(headViewMatrixInv);
+        
+        Matrix.multiplyMV(newDotPos, 0, headViewMatrixInv, 0, initDotPos, 0);
         selectionDot.setPosition(newDotPos[0], newDotPos[1], newDotPos[2]);
 
         selectionDot.setLookAt(getCamera().getPosition());
