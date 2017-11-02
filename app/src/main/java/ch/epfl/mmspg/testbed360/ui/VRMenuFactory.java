@@ -93,15 +93,27 @@ public final class VRMenuFactory {
         try {
             for (ImageGrade grade : ImageGrade.values()) {
                 if (!grade.equals(ImageGrade.NONE)) {
-                    VRButton button = new VRButton(renderer.getContext(),
+                    final VRButton button = new VRButton(renderer.getContext(),
                             grade.toString(renderer.getContext()),
                             STANDARD_BUTTON_WIDTH,
                             STANDARD_BUTTON_HEIGHT
                     );
-                    if (img.getGrade().equals(grade)) {
-                        button.setSelected(true);
-                    }
                     button.setSelectable(false);
+                    if (img.getGrade().equals(grade)) {
+                        button.setSelectable(true);
+                        button.setSelected(true);
+                        button.setOnTriggerAction(new Callable() {
+                            @Override
+                            public Object call() throws Exception {
+                                try {
+                                    renderer.switchScene(new VRScene(renderer, VRViewActivity.nextTraining()));
+                                } catch (EmptyStackException e) {
+                                    button.setText("No new image"); //TODO put text in strings.xml
+                                }
+                                return null;
+                            }
+                        });
+                    }
                     menu.addButton(button);
                 }
             }
