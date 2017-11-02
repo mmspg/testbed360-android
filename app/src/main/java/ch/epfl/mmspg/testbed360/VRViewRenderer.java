@@ -1,6 +1,7 @@
 package ch.epfl.mmspg.testbed360;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -10,15 +11,18 @@ import com.google.vrtoolkit.cardboard.Eye;
 
 import org.rajawali3d.Object3D;
 import org.rajawali3d.materials.Material;
+import org.rajawali3d.materials.textures.ATexture;
+import org.rajawali3d.materials.textures.Texture;
+import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Line3D;
+import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.vr.renderer.VRRenderer;
 
+import java.io.IOException;
 import java.util.Stack;
 
 public class VRViewRenderer extends VRRenderer {
-    //TODO remove or set false this in production, only for debugging
-    private final static boolean RENDER_AXIS = true;
 
     private final static String TAG = "VRViewRenderer";
 
@@ -32,22 +36,9 @@ public class VRViewRenderer extends VRRenderer {
     @Override
     public void initScene() {
         switchScene(new WelcomeScene(this));
-        initAxis();
 
         getCurrentCamera().setPosition(Vector3.ZERO);
         getCurrentCamera().setFieldOfView(100);
-    }
-
-    private void initAxis() {
-        if (RENDER_AXIS) {
-            getCurrentScene().addChild(createLine(Vector3.ZERO, Vector3.X, Color.RED));
-            getCurrentScene().addChild(createLine(Vector3.ZERO, Vector3.Y, Color.GREEN));
-            getCurrentScene().addChild(createLine(Vector3.ZERO, Vector3.Z, Color.BLUE));
-        }
-    }
-
-    private void initSkyBox() {
-
     }
 
     @Override
@@ -92,6 +83,9 @@ public class VRViewRenderer extends VRRenderer {
         return mHeadTranslation.angle(mForwardVec) < maxAngle;
     }
 
+    protected Matrix4 getMHeadViewMatrix(){
+        return mHeadViewMatrix;
+    }
 
     @Override
     public void onOffsetsChanged(float xOffset, float yOffset, float xOffsetStep, float yOffsetStep, int xPixelOffset,
@@ -120,21 +114,5 @@ public class VRViewRenderer extends VRRenderer {
             return (VRScene) getCurrentScene();
         }
         return null;
-    }
-
-
-    private static Line3D createLine(Vector3 p1, Vector3 p2, int color) {
-        Stack<Vector3> points = new Stack<>();
-        points.add(p1);
-        points.add(p2);
-
-        Line3D line = new Line3D(points, 2f, color);
-        Material material = new Material();
-        material.setColor(color);
-        line.setMaterial(material);
-        line.moveUp(-5);
-        line.moveRight(-5);
-        line.moveForward(-5);
-        return line;
     }
 }

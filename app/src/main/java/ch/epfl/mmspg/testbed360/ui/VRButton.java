@@ -43,10 +43,8 @@ import ch.epfl.mmspg.testbed360.VRViewRenderer;
 public class VRButton extends RectangularPrism {
     private final static String TAG = "VRButton";
 
-    private final static float LOOKING_AT_ANGLE = 5;
-
-    private final static int BUTTON_BG_COLOR = Color.argb(55, 55, 55, 55);
-    private final static int BUTTON_HOVER_BG_COLOR = Color.argb(180, 45, 45, 45);
+    private final static int BUTTON_BG_COLOR = Color.argb(45, 55, 55, 55);
+    private final static int BUTTON_HOVER_BG_COLOR = Color.argb(160, 45, 45, 45);
     private final static int BUTTON_SELECTED_BG_COLOR = Color.argb(255, 35, 35, 35);
 
     private final static int VIBRATION_HOVER_MS = 20;

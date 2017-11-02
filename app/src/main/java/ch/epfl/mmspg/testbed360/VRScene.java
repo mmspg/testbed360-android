@@ -2,12 +2,15 @@ package ch.epfl.mmspg.testbed360;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.materials.textures.Texture;
+import org.rajawali3d.math.Matrix;
+import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.renderer.Renderer;
 import org.rajawali3d.scene.Scene;
@@ -34,6 +37,12 @@ public class VRScene extends Scene {
     private Sphere sphere;
     protected VRMenu menu;
 
+    protected Sphere selectionDot;
+    double[] newDotPos = new double[4];
+    double[] initDotPos = {0, 0, -3, 1.0f};
+    double[] headViewMatrix_inv = new double[16];
+    Matrix4 headViewMatrix4 = new Matrix4();
+
     public VRScene(@NonNull Renderer renderer, @Nullable VRImage image) {
         super(renderer);
         this.vrImage = image;
@@ -51,6 +60,7 @@ public class VRScene extends Scene {
             }
         }
         initMenu(renderer);
+        initSelectionDot();
     }
 
     private void initSphere(@NonNull Context context) {
@@ -86,6 +96,20 @@ public class VRScene extends Scene {
             e.printStackTrace();
             //TODO display a vr message saying there was an issue loading image
         }
+    }
+
+    private void initSelectionDot() {
+        selectionDot = new Sphere(0.015f, 8, 4);
+        Material material = new Material();
+        material.setColor(Color.WHITE);
+        selectionDot.setMaterial(material);
+
+        selectionDot.setScaleX(-1); //otherwise image is inverted
+        selectionDot.setMaterial(material);
+
+        selectionDot.setPosition(initDotPos[0], initDotPos[1], initDotPos[2]);
+        selectionDot.setVisible(false);
+        addChild(selectionDot);
     }
 
     protected void initMenu(Renderer renderer) {
@@ -130,13 +154,28 @@ public class VRScene extends Scene {
                 menu.onCardboardTrigger();
             } else {
                 menu.setVisible(true);
+                selectionDot.setVisible(true);
             }
         }
     }
 
-    public void onDrawing(VRViewRenderer vrViewRenderer) {
+    public void onDrawing(@NonNull VRViewRenderer vrViewRenderer) {
         if (menu != null && menu.isVisible()) {
             menu.onDrawing(vrViewRenderer);
         }
+        if(selectionDot != null) {
+            centerSelectionDot(vrViewRenderer);
+        }
+    }
+
+    private void centerSelectionDot(@NonNull VRViewRenderer renderer){
+        headViewMatrix4.setAll(renderer.getMHeadViewMatrix());
+        headViewMatrix4 = headViewMatrix4.inverse();
+        double[] headViewMatrix_inv = new double[16];
+        headViewMatrix4.toArray(headViewMatrix_inv);
+        Matrix.multiplyMV(newDotPos, 0, headViewMatrix_inv, 0, initDotPos, 0);
+        selectionDot.setPosition(newDotPos[0], newDotPos[1], newDotPos[2]);
+
+        selectionDot.setLookAt(getCamera().getPosition());
     }
 }
