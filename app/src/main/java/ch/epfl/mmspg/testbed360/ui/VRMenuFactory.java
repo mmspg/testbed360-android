@@ -31,6 +31,12 @@ public final class VRMenuFactory {
         //do nothing, this constructor is private to follow the Factory Pattern
     }
 
+    /**
+     * Builds the {@link VRMenu} displayed when the user starts the app. It explains what we wait from
+     * him/her, and has a {@link VRButton} to start the training session
+     * @param renderer the {@link Renderer} used to switch between {@link org.rajawali3d.scene.Scene}
+     * @return the initialized and ready to use {@link VRMenu}
+     */
     public static VRMenu buildWelcomeMenu(final Renderer renderer) {
         VRMenu menu = new VRMenu(STANDARD_MENU_DISTANCE);
 
@@ -65,6 +71,14 @@ public final class VRMenuFactory {
         return menu;
     }
 
+    /**
+     * Build a {@link VRButton} that displays the fPS in real time of the {@link Renderer}. As
+     * the {@link VRButton#redraw()} method is quite costly, we round to the nearest 0.5 so that
+     * we don't loose some FPS while displaying them...
+     * @param renderer the {@link Renderer} on which we monitor FPS
+     * @return the ready to use {@link VRButton}, which is no selectable. (see {@link VRButton#isSelectable}
+     * @throws ATexture.TextureException if there was a texturing error while constructing the button
+     */
     private static VRButton buildFPSButton(final Renderer renderer) throws ATexture.TextureException {
         final VRButton fpsButton = new VRButton(renderer.getContext(),
                 "",
@@ -77,8 +91,6 @@ public final class VRMenuFactory {
                 //pretty sure we have to divide per two because this method was thought
                 //for non VR rendering, hence we render twice as much image, which would give
                 //us here ~120FPS which seems way too much!
-                //also rounding to display to the nearest .5, hence to avoid redrawing too often
-                // this button which would make the FPS go down ironically !
                 fpsButton.setText("FPS:" + Math.round(fps) / 2.0);
             }
         });
@@ -86,6 +98,14 @@ public final class VRMenuFactory {
         return fpsButton;
     }
 
+    /**
+     * Builds a {@link VRMenu} corresponding to a {@link VRImage} from the training session. It directly
+     * displays the grade of the given {@link VRImage} in a {@link VRButton}, which when clicked on
+     * will chain call the next {@link VRScene}
+     *
+     * @param renderer the {@link Renderer} used to switch between {@link org.rajawali3d.scene.Scene}
+     * @return the initialized and ready to use {@link VRMenu}
+     */
     public static VRMenu buildTrainingGradeMenu(final Renderer renderer, VRImage img) {
         VRMenu menu = new VRMenu(20);
         menu.setY(4);
