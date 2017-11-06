@@ -6,6 +6,7 @@ model {
         buildToolsVersion "25.0.2"
         defaultConfig {
             applicationId 'ch.epfl.mmspg.testbed360'
+            multiDexEnabled true
             minSdkVersion.apiLevel 21
             targetSdkVersion.apiLevel 25
             versionCode 1
@@ -32,5 +33,4 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'org.rajawali3d:rajawali:1.1.970'
     compile 'org.rajawali3d:vr:1.1.970'
-    compile 'com.github.bumptech.glide:glide:4.3.0'
 }

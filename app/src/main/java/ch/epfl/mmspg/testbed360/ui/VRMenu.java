@@ -111,6 +111,7 @@ public class VRMenu extends RectangularPrism implements Recyclable {
 
     @Override
     public void shouldRecycle(boolean shouldRecycle) {
+        setVisible(false);
         for(VRButton button : buttons){
             button.shouldRecycle(shouldRecycle);
         }

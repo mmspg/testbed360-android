@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.materials.textures.Texture;
+import org.rajawali3d.materials.textures.TextureManager;
 import org.rajawali3d.math.Matrix;
 import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.primitives.Sphere;
@@ -33,10 +34,11 @@ public class VRScene extends Scene implements Recyclable {
 
     public final static int MODE_TRAINING = 0;
     public final static int MODE_EVALUATION = 1;
+    private static Texture sphereTexture;
+    private static Texture skyboxTexture;
 
     private VRImage vrImage;
     private Sphere sphere;
-    private ATexture mSphereTexture;
     protected VRMenu menu;
 
     protected Sphere selectionDot;
@@ -74,8 +76,12 @@ public class VRScene extends Scene implements Recyclable {
             if (bitmaps == null || bitmaps.length < 1 || bitmaps[0] == null) {
                 throw new IOException("Error : no equirectangular bitmap for picture " + vrImage);
             }
-            mSphereTexture = new Texture("photo", bitmaps[0]);
-            material.addTexture(mSphereTexture);
+            if (sphereTexture == null) {
+                sphereTexture = new Texture("photo", bitmaps[0]);
+            }else{
+                sphereTexture.setBitmap(bitmaps[0]);
+            }
+            material.addTexture(sphereTexture);
         } catch (IOException | ATexture.TextureException e) {
             e.printStackTrace();
             //TODO display a vr message saying there was an issue loading image
@@ -169,11 +175,14 @@ public class VRScene extends Scene implements Recyclable {
                 case CUBIC:
                     if (mSkyboxTexture != null) {
                         mSkyboxTexture.shouldRecycle(true);
+                        TextureManager.getInstance().removeTexture(mSkyboxTexture);
+                        mSkybox.destroy();
                     }
                     break;
                 case EQUIRECTANGULAR:
-                    if (mSphereTexture != null) {
-                        mSphereTexture.shouldRecycle(true);
+                    if (sphereTexture != null) {
+                        sphereTexture.shouldRecycle(true);
+                        TextureManager.getInstance().removeTexture(sphereTexture);
                     }
                     break;
                 default:
@@ -182,6 +191,8 @@ public class VRScene extends Scene implements Recyclable {
         } else {
             if (mSkyboxTexture != null) {
                 mSkyboxTexture.shouldRecycle(true);
+                TextureManager.getInstance().removeTexture(mSkyboxTexture);
+                mSkybox.destroy();
             }
         }
     }

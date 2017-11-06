@@ -305,5 +305,6 @@ public class VRButton extends RectangularPrism implements Recyclable {
     @Override
     public void shouldRecycle(boolean shouldRecycle) {
         mReusableBitmaps.add(bitmapTexture);
+        TextureManager.getInstance().removeTexture(texture);
     }
 }

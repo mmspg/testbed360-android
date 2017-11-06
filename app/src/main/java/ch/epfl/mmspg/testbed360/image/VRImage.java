@@ -74,8 +74,6 @@ public final class VRImage {
      */
     private int quality = UNKNOWN_QUALITY;
 
-    private Bitmap[] bitmaps = new Bitmap[6];
-
     /**
      * Creates a new {@link VRImage} based on the given {@link File}
      *
@@ -138,15 +136,13 @@ public final class VRImage {
     public Bitmap[] getBitmap(@NonNull Context context) throws IOException {
         switch (vrImageType) {
             case CUBIC:
-                bitmaps = ImageUtils.loadCubicMap(context,this);
-                return bitmaps;
+                return ImageUtils.loadCubicMap(context,this);
             case EQUIRECTANGULAR:
                 try {
-                    bitmaps = ImageUtils.loadSphereBitmap(context,this);
+                    return ImageUtils.loadSphereBitmap(context,this);
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
-                return bitmaps;
             default:
                 return null;
         }

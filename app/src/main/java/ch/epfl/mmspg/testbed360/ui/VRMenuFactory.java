@@ -88,7 +88,7 @@ public final class VRMenuFactory {
                 STANDARD_BUTTON_WIDTH,
                 STANDARD_BUTTON_HEIGHT);
         fpsButton.setName("FPSButton");
-        renderer.setFPSUpdateListener(new OnFPSUpdateListener() {
+        /*renderer.setFPSUpdateListener(new OnFPSUpdateListener() {
             @Override
             public void onFPSUpdate(double fps) {
                 //pretty sure we have to divide per two because this method was thought
@@ -96,7 +96,7 @@ public final class VRMenuFactory {
                 //us here ~120FPS which seems way too much!
                 fpsButton.setText("FPS:" + Math.round(fps) / 2.0);
             }
-        });
+        });*/
         fpsButton.setSelectable(false);
         return fpsButton;
     }
