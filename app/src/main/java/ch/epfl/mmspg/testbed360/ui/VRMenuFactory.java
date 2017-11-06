@@ -34,6 +34,7 @@ public final class VRMenuFactory {
     /**
      * Builds the {@link VRMenu} displayed when the user starts the app. It explains what we wait from
      * him/her, and has a {@link VRButton} to start the training session
+     *
      * @param renderer the {@link Renderer} used to switch between {@link org.rajawali3d.scene.Scene}
      * @return the initialized and ready to use {@link VRMenu}
      */
@@ -56,6 +57,7 @@ public final class VRMenuFactory {
                 @Override
                 public Object call() throws Exception {
                     try {
+                        ((VRScene) renderer.getCurrentScene()).shouldRecycle(true);
                         renderer.switchScene(new VRScene(renderer, VRViewActivity.nextTraining()));
                     } catch (EmptyStackException e) {
                         startButton.setText("No new image"); //TODO put text in strings.xml
@@ -75,6 +77,7 @@ public final class VRMenuFactory {
      * Build a {@link VRButton} that displays the fPS in real time of the {@link Renderer}. As
      * the {@link VRButton#redraw()} method is quite costly, we round to the nearest 0.5 so that
      * we don't loose some FPS while displaying them...
+     *
      * @param renderer the {@link Renderer} on which we monitor FPS
      * @return the ready to use {@link VRButton}, which is no selectable. (see {@link VRButton#isSelectable}
      * @throws ATexture.TextureException if there was a texturing error while constructing the button
@@ -126,14 +129,59 @@ public final class VRMenuFactory {
                             @Override
                             public Object call() throws Exception {
                                 try {
+                                    ((VRScene) renderer.getCurrentScene()).shouldRecycle(true);
                                     renderer.switchScene(new VRScene(renderer, VRViewActivity.nextTraining()));
                                 } catch (EmptyStackException e) {
-                                    button.setText("No new image"); //TODO put text in strings.xml
+                                    try {
+                                        renderer.switchScene(new VRScene(renderer, VRViewActivity.nextEvaluation()));
+                                    } catch (EmptyStackException e2) {
+                                        button.setText("No new image"); //TODO put text in strings.xml
+                                    }
                                 }
                                 return null;
                             }
                         });
                     }
+                    menu.addButton(button);
+                }
+            }
+        } catch (ATexture.TextureException e) {
+            e.printStackTrace();
+        }
+        return menu;
+    }
+
+    /**
+     * Builds a {@link VRMenu} corresponding to a {@link VRImage} from the evaluation session.
+     * Setting a grade triggers the next {@link VRScene}
+     *
+     * @param renderer the {@link Renderer} used to switch between {@link org.rajawali3d.scene.Scene}
+     * @return the initialized and ready to use {@link VRMenu}
+     */
+    public static VRMenu buildEvaluationGradeMenu(final Renderer renderer, VRImage img) {
+        VRMenu menu = new VRMenu(20);
+        menu.setY(4);
+
+        try {
+            for (ImageGrade grade : ImageGrade.values()) {
+                if (!grade.equals(ImageGrade.NONE)) {
+                    final VRButton button = new VRButton(renderer.getContext(),
+                            grade.toString(renderer.getContext()),
+                            STANDARD_BUTTON_WIDTH,
+                            STANDARD_BUTTON_HEIGHT
+                    );
+                    button.setOnTriggerAction(new Callable() {
+                        @Override
+                        public Object call() throws Exception {
+                            try {
+                                ((VRScene) renderer.getCurrentScene()).shouldRecycle(true);
+                                renderer.switchScene(new VRScene(renderer, VRViewActivity.nextEvaluation()));
+                            } catch (EmptyStackException e) {
+                                button.setText("No new image"); //TODO put text in strings.xml
+                            }
+                            return null;
+                        }
+                    });
                     menu.addButton(button);
                 }
             }

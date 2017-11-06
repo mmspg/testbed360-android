@@ -13,7 +13,7 @@ import ch.epfl.mmspg.testbed360.VRViewRenderer;
  * @date 21/10/2017
  */
 
-public class VRMenu extends RectangularPrism {
+public class VRMenu extends RectangularPrism implements Recyclable {
     private final static String TAG = "VRMenu";
     private final static float BUTTON_SPACING = 0.5f;
     private static int MENU_COUNTER = 0;
@@ -107,5 +107,12 @@ public class VRMenu extends RectangularPrism {
             y += button.getHeight() + BUTTON_SPACING;
         }
         return y;
+    }
+
+    @Override
+    public void shouldRecycle(boolean shouldRecycle) {
+        for(VRButton button : buttons){
+            button.shouldRecycle(shouldRecycle);
+        }
     }
 }

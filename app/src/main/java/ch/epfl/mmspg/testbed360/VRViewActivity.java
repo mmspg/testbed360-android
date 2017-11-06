@@ -35,6 +35,7 @@ public class VRViewActivity extends VRActivity {
     private final static String TAG = "VRViewActivity";
     private VRViewRenderer mRenderer;
     private static Stack<VRImage> TRAINING_IMAGES = new Stack<>();
+    private static Stack<VRImage> EVALUATION_IMAGES = new Stack<>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -62,6 +63,10 @@ public class VRViewActivity extends VRActivity {
             List<VRImage> vrImgs = ImageUtils.distinctShuffle(ImageUtils.loadVRImages(this, VRScene.MODE_TRAINING));
             Collections.reverse(vrImgs); // we reverse here as it will be inverted in the stack after
             TRAINING_IMAGES.addAll(vrImgs);
+
+            vrImgs = ImageUtils.distinctShuffle(ImageUtils.loadVRImages(this, VRScene.MODE_EVALUATION));
+            Collections.reverse(vrImgs); // we reverse here as it will be inverted in the stack after
+            EVALUATION_IMAGES.addAll(vrImgs);
         } catch (IllegalStateException e) {
             //TODO display a message saying that there is no picture
             e.printStackTrace();
@@ -89,5 +94,9 @@ public class VRViewActivity extends VRActivity {
 
     public static VRImage nextTraining() throws EmptyStackException {
         return TRAINING_IMAGES.pop();
+    }
+
+    public static VRImage nextEvaluation() throws EmptyStackException {
+        return EVALUATION_IMAGES.pop();
     }
 }

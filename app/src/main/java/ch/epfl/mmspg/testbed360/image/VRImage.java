@@ -11,8 +11,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import ch.epfl.mmspg.testbed360.ui.Recyclable;
 
 /**
  * A {@link VRImage} is a 360° image that will be assessed in this app. It is defined by a {@link File}
@@ -70,6 +73,8 @@ public final class VRImage {
      * Quality of this picture
      */
     private int quality = UNKNOWN_QUALITY;
+
+    private Bitmap[] bitmaps = new Bitmap[6];
 
     /**
      * Creates a new {@link VRImage} based on the given {@link File}
@@ -133,9 +138,15 @@ public final class VRImage {
     public Bitmap[] getBitmap(@NonNull Context context) throws IOException {
         switch (vrImageType) {
             case CUBIC:
-                return ImageUtils.loadCubicMap(context, this);
+                bitmaps = ImageUtils.loadCubicMap(context,this);
+                return bitmaps;
             case EQUIRECTANGULAR:
-                return new Bitmap[]{BitmapFactory.decodeFile(file.getAbsolutePath(),new BitmapFactory.Options())};
+                try {
+                    bitmaps = ImageUtils.loadSphereBitmap(context,this);
+                } catch (ExecutionException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+                return bitmaps;
             default:
                 return null;
         }
@@ -187,4 +198,5 @@ public final class VRImage {
     public File getFile() {
         return file;
     }
+
 }

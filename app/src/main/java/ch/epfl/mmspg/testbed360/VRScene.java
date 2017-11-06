@@ -14,12 +14,12 @@ import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.renderer.Renderer;
 import org.rajawali3d.scene.Scene;
-import org.rajawali3d.util.OnFPSUpdateListener;
 
 import java.io.IOException;
 
+import ch.epfl.mmspg.testbed360.image.ImageGrade;
 import ch.epfl.mmspg.testbed360.image.VRImage;
-import ch.epfl.mmspg.testbed360.ui.VRButton;
+import ch.epfl.mmspg.testbed360.ui.Recyclable;
 import ch.epfl.mmspg.testbed360.ui.VRMenu;
 import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
 
@@ -28,7 +28,7 @@ import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
  * @date 30/10/2017
  */
 
-public class VRScene extends Scene {
+public class VRScene extends Scene implements Recyclable {
     private final static String TAG = "VRScene";
 
     public final static int MODE_TRAINING = 0;
@@ -36,6 +36,7 @@ public class VRScene extends Scene {
 
     private VRImage vrImage;
     private Sphere sphere;
+    private ATexture mSphereTexture;
     protected VRMenu menu;
 
     protected Sphere selectionDot;
@@ -73,7 +74,8 @@ public class VRScene extends Scene {
             if (bitmaps == null || bitmaps.length < 1 || bitmaps[0] == null) {
                 throw new IOException("Error : no equirectangular bitmap for picture " + vrImage);
             }
-            material.addTexture(new Texture("photo", bitmaps[0]));
+            mSphereTexture = new Texture("photo", bitmaps[0]);
+            material.addTexture(mSphereTexture);
         } catch (IOException | ATexture.TextureException e) {
             e.printStackTrace();
             //TODO display a vr message saying there was an issue loading image
@@ -114,13 +116,12 @@ public class VRScene extends Scene {
     }
 
     protected void initMenu(Renderer renderer) {
-        if (vrImage.getGrade() == null) {
+        if (vrImage.getGrade().equals(ImageGrade.NONE)) {
             //evaluation
-            //TODO implement evaluation menu
-            menu = VRMenuFactory.buildTrainingGradeMenu(renderer, vrImage);
+            menu = VRMenuFactory.buildEvaluationGradeMenu(renderer, vrImage);
             menu.setVisible(false);
             addChild(menu);
-        }else {
+        } else {
             menu = VRMenuFactory.buildTrainingGradeMenu(renderer, vrImage);
             menu.setVisible(false);
             addChild(menu);
@@ -158,5 +159,30 @@ public class VRScene extends Scene {
         selectionDot.setPosition(newDotPos[0], newDotPos[1], newDotPos[2]);
 
         selectionDot.setLookAt(getCamera().getPosition());
+    }
+
+    @Override
+    public void shouldRecycle(boolean shouldRecycle) {
+        menu.shouldRecycle(shouldRecycle);
+        if (vrImage != null) {
+            switch (vrImage.getVrImageType()) {
+                case CUBIC:
+                    if (mSkyboxTexture != null) {
+                        mSkyboxTexture.shouldRecycle(true);
+                    }
+                    break;
+                case EQUIRECTANGULAR:
+                    if (mSphereTexture != null) {
+                        mSphereTexture.shouldRecycle(true);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            if (mSkyboxTexture != null) {
+                mSkyboxTexture.shouldRecycle(true);
+            }
+        }
     }
 }

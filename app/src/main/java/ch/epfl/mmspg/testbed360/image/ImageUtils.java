@@ -11,16 +11,21 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.FutureTarget;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import static ch.epfl.mmspg.testbed360.VRScene.MODE_EVALUATION;
 import static ch.epfl.mmspg.testbed360.VRScene.MODE_TRAINING;
@@ -39,6 +44,9 @@ public final class ImageUtils {
     private final static String EVALUATION_DIR = "evaluation";
     private final static String TRAINING_DIR = "training";
 
+    private static Bitmap[] cubeBitmaps = new Bitmap[6];
+    private static Bitmap[] sphereBitmap = new Bitmap[1];
+
     /**
      * Loads a region of a {@link Bitmap}
      *
@@ -52,10 +60,13 @@ public final class ImageUtils {
      */
     private static Bitmap loadBitmapRegion(
             BitmapRegionDecoder decoder,
+            Bitmap reusableBitmap,
             float regionLeft, float regionTop,
             float regionRight, float regionBottom) {
         BitmapFactory.Options opt = new BitmapFactory.Options();
-        opt.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        opt.inPreferredConfig = Bitmap.Config.RGB_565;
+        opt.inBitmap = reusableBitmap;
+        opt.inMutable = true;
         int h = decoder.getHeight();
         int w = decoder.getWidth();
         Log.d(TAG, "loadBitmapRegion: image is " + w + "x" + h);
@@ -73,7 +84,7 @@ public final class ImageUtils {
      * @param context    {@link Context} of the app to load the resource
      * @param resourceId the id of the resource containing the cube map to decode
      * @return a {@link Bitmap} array of length 6, containing each faces of the cube, or containing null
-     * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, float, float, float, float)}
+     * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, Bitmap, float, float, float, float)}
      * @throws IOException if the image format is not supported or can not be decoded. (see {@link BitmapRegionDecoder#newInstance(InputStream, boolean)}
      */
     @NonNull
@@ -87,7 +98,7 @@ public final class ImageUtils {
      * @param context {@link Context} of the app to load the resource
      * @param image   the image containing the {@link VRImage#file} to read from
      * @return a {@link Bitmap} array of length 6, containing each faces of the cube, or containing null
-     * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, float, float, float, float)}
+     * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, Bitmap, float, float, float, float)}
      * @throws IOException if the image format is not supported or can not be decoded. (see {@link BitmapRegionDecoder#newInstance(InputStream, boolean)}
      */
     @NonNull
@@ -102,20 +113,20 @@ public final class ImageUtils {
      * @param context {@link Context} of the app to load the resource
      * @param stream  the stream to read the image from. This methods closes it when done.
      * @return a {@link Bitmap} array of length 6, containing each faces of the cube, or containing null
-     * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, float, float, float, float)}
+     * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, Bitmap, float, float, float, float)}
      * @throws IOException if the image format is not supported or can not be decoded. (see {@link BitmapRegionDecoder#newInstance(InputStream, boolean)}
      */
     @NonNull
     public static Bitmap[] loadCubicMap(@NonNull Context context, @NonNull InputStream stream) throws IOException {
-        Bitmap[] bitmapCube = new Bitmap[6];
         BitmapRegionDecoder decoder = BitmapRegionDecoder.newInstance(stream, false);
         float hPadding = 1f / 3f;
         float vPadding = 1f / 2f;
 
         //left
-        bitmapCube[0] = rotateBitmap(
+        cubeBitmaps[0] = rotateBitmap(
                 loadBitmapRegion(
                         decoder,
+                        cubeBitmaps[0],
                         hPadding,
                         vPadding,
                         hPadding * 2,
@@ -123,17 +134,19 @@ public final class ImageUtils {
                 ), -90
         );
         //right
-        bitmapCube[1] = loadBitmapRegion(
+        cubeBitmaps[1] = loadBitmapRegion(
                 decoder,
+                cubeBitmaps[1],
                 hPadding,
                 0f,
                 hPadding * 2,
                 vPadding
         );
         //top
-        bitmapCube[2] = rotateBitmap(
+        cubeBitmaps[2] = rotateBitmap(
                 loadBitmapRegion(
                         decoder,
+                        cubeBitmaps[2],
                         hPadding * 2,
                         vPadding,
                         hPadding * 3,
@@ -141,23 +154,26 @@ public final class ImageUtils {
                 ), 180
         );
         //bottom
-        bitmapCube[3] = loadBitmapRegion(
+        cubeBitmaps[3] = loadBitmapRegion(
                 decoder,
+                cubeBitmaps[3],
                 0f,
                 vPadding,
                 hPadding,
                 vPadding * 2
         );
         //back
-        bitmapCube[4] = loadBitmapRegion(
+        cubeBitmaps[4] = loadBitmapRegion(
                 decoder,
+                cubeBitmaps[4],
                 hPadding * 2,
                 0f,
                 hPadding * 3,
                 vPadding);
         //front
-        bitmapCube[5] = loadBitmapRegion(
+        cubeBitmaps[5] = loadBitmapRegion(
                 decoder,
+                cubeBitmaps[5],
                 0f,
                 0f,
                 hPadding,
@@ -167,7 +183,7 @@ public final class ImageUtils {
         stream.close();
         decoder.recycle();
 
-        return bitmapCube;
+        return cubeBitmaps;
 
     }
 
@@ -478,5 +494,15 @@ public final class ImageUtils {
         }
         Log.d(TAG, "\tNew Round ! (" + shuffleCount + " slug shuffles)");
         return shuffleCount;
+    }
+
+    public static Bitmap[] loadSphereBitmap(Context context, VRImage image) throws ExecutionException, InterruptedException {
+        /*FutureTarget<Bitmap> target = Glide.with(context).asBitmap().load(image.getFile()).submit();
+        return new Bitmap[]{target.get()};*/
+        BitmapFactory.Options opt = new BitmapFactory.Options();
+        opt.inPreferredConfig = Bitmap.Config.RGB_565;
+        opt.inBitmap = sphereBitmap[0];
+        opt.inMutable = true;
+        return new Bitmap[]{BitmapFactory.decodeFile(image.getFile().getAbsolutePath(),opt)};
     }
 }

@@ -2,6 +2,7 @@ package ch.epfl.mmspg.testbed360.ui;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -20,6 +21,11 @@ import org.rajawali3d.materials.textures.TextureManager;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.RectangularPrism;
 
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import ch.epfl.mmspg.testbed360.R;
@@ -40,7 +46,7 @@ import ch.epfl.mmspg.testbed360.VRViewRenderer;
  * @date 20/10/2017
  */
 
-public class VRButton extends RectangularPrism {
+public class VRButton extends RectangularPrism implements Recyclable {
     private final static String TAG = "VRButton";
 
     private final static int BUTTON_BG_COLOR = Color.argb(45, 55, 55, 55);
@@ -53,9 +59,14 @@ public class VRButton extends RectangularPrism {
     private final static int CANVAS_WIDTH = 1024;
     private final static int CANVAS_HEIGHT = 256;
 
+    private final static Set<SoftReference<Bitmap>> mReusableBitmaps = new HashSet<>();
+
+
     private static int BUTTON_COUNTER = 0;
 
+    private SoftReference<Bitmap> bitmapTexture;
     private Texture texture;
+
     private View layoutView;
     private TextView textView;
     private String buttonId;
@@ -104,8 +115,8 @@ public class VRButton extends RectangularPrism {
         textView.setText(text);
         textView.layout(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-        Bitmap bitmap = Bitmap.createBitmap(CANVAS_WIDTH, CANVAS_HEIGHT, Bitmap.Config.ARGB_8888);
-        texture = new Texture(buttonId, bitmap);
+        bitmapTexture = new SoftReference<Bitmap>(findUsableBitmap());
+        texture = new Texture(buttonId, bitmapTexture.get());
         Material prismMaterial = new Material();
         prismMaterial.setColorInfluence(0);
 
@@ -113,8 +124,37 @@ public class VRButton extends RectangularPrism {
         setMaterial(prismMaterial);
 
         setText(text);
+        redraw();
 
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+    }
+
+    private static Bitmap findUsableBitmap() {
+        Bitmap bitmap = null;
+
+        if (!mReusableBitmaps.isEmpty()) {
+            synchronized (mReusableBitmaps) {
+                final Iterator<SoftReference<Bitmap>> iterator = mReusableBitmaps.iterator();
+                Bitmap item;
+
+                while (iterator.hasNext()) {
+                    item = iterator.next().get();
+                    if (null != item && item.isMutable()) {
+                        bitmap = item;
+                        // Remove from reusable set so it can't be used again.
+                        iterator.remove();
+                        break;
+                    } else {
+                        // Remove from the set if the reference has been cleared.
+                        iterator.remove();
+                    }
+                }
+            }
+        }
+        if (bitmap == null) {
+            return Bitmap.createBitmap(CANVAS_WIDTH, CANVAS_HEIGHT, Bitmap.Config.ARGB_8888);
+        }
+        return bitmap;
     }
 
     /**
@@ -137,10 +177,12 @@ public class VRButton extends RectangularPrism {
      * or changing the backround color
      */
     private void redraw() {
-        Canvas buttonCanvas = new Canvas(texture.getBitmap());
-        buttonCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.MULTIPLY);
-        layoutView.draw(buttonCanvas);
-        TextureManager.getInstance().replaceTexture(texture);
+        if(bitmapTexture.get().isMutable()) {
+            Canvas buttonCanvas = new Canvas(bitmapTexture.get());
+            buttonCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.MULTIPLY);
+            layoutView.draw(buttonCanvas);
+            TextureManager.getInstance().replaceTexture(texture);
+        }
     }
 
     /**
@@ -258,5 +300,10 @@ public class VRButton extends RectangularPrism {
 
     public void setSelectable(boolean selectable) {
         isSelectable = selectable;
+    }
+
+    @Override
+    public void shouldRecycle(boolean shouldRecycle) {
+        mReusableBitmaps.add(bitmapTexture);
     }
 }
