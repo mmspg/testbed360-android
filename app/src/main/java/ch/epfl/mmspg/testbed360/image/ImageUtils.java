@@ -47,6 +47,7 @@ public final class ImageUtils {
      * Loads a region of a {@link Bitmap}
      *
      * @param decoder      the {@link BitmapRegionDecoder} to be used
+     * @param reusableBitmap      a {@link Bitmap} we want to reuse
      * @param regionLeft   the ratio on the {@link Bitmap} corresponding to the left side of the region
      * @param regionTop    the ratio on the {@link Bitmap} corresponding to the top side of the region
      * @param regionRight  the ratio on the {@link Bitmap} corresponding to the right side of the region
@@ -75,7 +76,7 @@ public final class ImageUtils {
     }
 
     /**
-     * See {@link #loadCubicMap(Context, InputStream)}
+     * See {@link #loadCubicMap(InputStream)}
      *
      * @param context    {@link Context} of the app to load the resource
      * @param resourceId the id of the resource containing the cube map to decode
@@ -85,35 +86,33 @@ public final class ImageUtils {
      */
     @NonNull
     public static Bitmap[] loadCubicMap(@NonNull Context context, int resourceId) throws IOException {
-        return loadCubicMap(context, context.getResources().openRawResource(resourceId));
+        return loadCubicMap(context.getResources().openRawResource(resourceId));
     }
 
     /**
-     * See {@link #loadCubicMap(Context, InputStream)}
+     * See {@link #loadCubicMap(InputStream)}
      *
-     * @param context {@link Context} of the app to load the resource
      * @param image   the image containing the {@link VRImage#file} to read from
      * @return a {@link Bitmap} array of length 6, containing each faces of the cube, or containing null
      * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, Bitmap, float, float, float, float)}
      * @throws IOException if the image format is not supported or can not be decoded. (see {@link BitmapRegionDecoder#newInstance(InputStream, boolean)}
      */
     @NonNull
-    public static Bitmap[] loadCubicMap(@NonNull Context context, @NonNull VRImage image) throws IOException {
-        return loadCubicMap(context, new FileInputStream(image.getFile()));
+    public static Bitmap[] loadCubicMap(@NonNull VRImage image) throws IOException {
+        return loadCubicMap(new FileInputStream(image.getFile()));
     }
 
     /**
      * Helper methods to load a cube map image into an array of {@link Bitmap}s. The order of faces
      * is : left, right, top, bottom, back, front
      *
-     * @param context {@link Context} of the app to load the resource
      * @param stream  the stream to read the image from. This methods closes it when done.
      * @return a {@link Bitmap} array of length 6, containing each faces of the cube, or containing null
      * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, Bitmap, float, float, float, float)}
      * @throws IOException if the image format is not supported or can not be decoded. (see {@link BitmapRegionDecoder#newInstance(InputStream, boolean)}
      */
     @NonNull
-    public static Bitmap[] loadCubicMap(@NonNull Context context, @NonNull InputStream stream) throws IOException {
+    public static Bitmap[] loadCubicMap(@NonNull InputStream stream) throws IOException {
         BitmapRegionDecoder decoder = BitmapRegionDecoder.newInstance(stream, false);
         float hPadding = 1f / 3f;
         float vPadding = 1f / 2f;
@@ -492,7 +491,12 @@ public final class ImageUtils {
         return shuffleCount;
     }
 
-    public static Bitmap[] loadSphereBitmap(Context context, VRImage image) throws ExecutionException, InterruptedException {
+    /**
+     * Loads the Equirectangular image of the given {@link VRImage}.
+     * @param image the {@link VRImage} to load the {@link Bitmap} from
+     * @return a {@link Bitmap} array containing only the equirectangular {@link Bitmap}
+     */
+    public static Bitmap[] loadSphereBitmap(VRImage image) {
         BitmapFactory.Options opt = new BitmapFactory.Options();
         opt.inPreferredConfig = Bitmap.Config.RGB_565;
         opt.inBitmap = sphereBitmap[0];

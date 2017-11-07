@@ -136,13 +136,9 @@ public final class VRImage {
     public Bitmap[] getBitmap(@NonNull Context context) throws IOException {
         switch (vrImageType) {
             case CUBIC:
-                return ImageUtils.loadCubicMap(context,this);
+                return ImageUtils.loadCubicMap(this);
             case EQUIRECTANGULAR:
-                try {
-                    return ImageUtils.loadSphereBitmap(context,this);
-                } catch (ExecutionException | InterruptedException e) {
-                    e.printStackTrace();
-                }
+                return ImageUtils.loadSphereBitmap(this);
             default:
                 return null;
         }

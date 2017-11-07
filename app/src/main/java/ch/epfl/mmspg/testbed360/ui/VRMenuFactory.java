@@ -57,7 +57,7 @@ public final class VRMenuFactory {
                 public Object call() throws Exception {
                     try {
                         VRImage next = VRViewActivity.nextTraining();
-                        ((VRScene) renderer.getCurrentScene()).shouldRecycle(true);
+                        ((VRScene) renderer.getCurrentScene()).recycle();
                         renderer.switchScene(new VRScene(renderer, next));
                     } catch (EmptyStackException e) {
                         startButton.setText("No new image"); //TODO put text in strings.xml
@@ -130,12 +130,12 @@ public final class VRMenuFactory {
                             public Object call() throws Exception {
                                 try {
                                     VRImage next = VRViewActivity.nextTraining();
-                                    ((VRScene) renderer.getCurrentScene()).shouldRecycle(true);
+                                    ((VRScene) renderer.getCurrentScene()).recycle();
                                     renderer.switchScene(new VRScene(renderer, next));
                                 } catch (EmptyStackException e) {
                                     try {
                                         VRImage next = VRViewActivity.nextEvaluation();
-                                        ((VRScene) renderer.getCurrentScene()).shouldRecycle(true);
+                                        ((VRScene) renderer.getCurrentScene()).recycle();
                                         renderer.switchScene(new VRScene(renderer, next));
                                     } catch (EmptyStackException e2) {
                                         button.setText("No new image"); //TODO put text in strings.xml
@@ -178,7 +178,7 @@ public final class VRMenuFactory {
                         public Object call() throws Exception {
                             try {
                                 VRImage next = VRViewActivity.nextEvaluation();
-                                ((VRScene) renderer.getCurrentScene()).shouldRecycle(true);
+                                ((VRScene) renderer.getCurrentScene()).recycle();
                                 renderer.switchScene(new VRScene(renderer, next));
                             } catch (EmptyStackException e) {
                                 button.setText("No new image"); //TODO put text in strings.xml
