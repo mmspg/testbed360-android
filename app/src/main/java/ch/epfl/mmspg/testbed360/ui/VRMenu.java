@@ -13,9 +13,11 @@ import ch.epfl.mmspg.testbed360.VRViewRenderer;
  * @date 21/10/2017
  */
 
-public class VRMenu extends RectangularPrism implements Recyclable {
+public class VRMenu extends RectangularPrism implements VRUI {
     private final static String TAG = "VRMenu";
     private final static float BUTTON_SPACING = 0.5f;
+    private final static float STANDARD_DISTANCE = 20f;
+
     private static int MENU_COUNTER = 0;
 
     private ArrayList<VRButton> buttons = new ArrayList<>();
@@ -24,12 +26,12 @@ public class VRMenu extends RectangularPrism implements Recyclable {
 
     private String tag;
 
-    public VRMenu(float distance) {
+    public VRMenu() {
         super(0, 0, 0);
-
         //TODO implement automatic height compensation when adding buttons
+        this.distance = STANDARD_DISTANCE;
         setPosition(new Vector3(0, 2, -distance));
-        this.distance = distance;
+
 
         Material prismMaterial = new Material();
         prismMaterial.setColorInfluence(0);
@@ -66,6 +68,10 @@ public class VRMenu extends RectangularPrism implements Recyclable {
         return buttons.get(index);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean onCardboardTrigger() {
         for (VRButton button : buttons) {
             if (button.onCardboardTrigger()) {
@@ -75,6 +81,10 @@ public class VRMenu extends RectangularPrism implements Recyclable {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void onDrawing(VRViewRenderer renderer) {
         setRotY(180 + renderer.getCurrentCamera().getRotY() * 180.0 / Math.PI);
 
@@ -109,6 +119,9 @@ public class VRMenu extends RectangularPrism implements Recyclable {
         return y;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void recycle() {
         setVisible(false);

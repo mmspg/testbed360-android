@@ -2,7 +2,6 @@ package ch.epfl.mmspg.testbed360.image;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -11,11 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import ch.epfl.mmspg.testbed360.ui.Recyclable;
 
 /**
  * A {@link VRImage} is a 360° image that will be assessed in this app. It is defined by a {@link File}
@@ -124,7 +120,7 @@ public final class VRImage {
         if (gradeOrQuality.startsWith(GRADE_PREFIX)) {
             try {
                 grade = ImageGrade.fromGrade(Integer.parseInt(gradeOrQuality.substring(GRADE_PREFIX.length())));
-            }catch (NoSuchElementException e){
+            } catch (NoSuchElementException e) {
                 e.printStackTrace();
             }
         } else if (gradeOrQuality.startsWith(QUALITY_PREFIX)) {
@@ -132,6 +128,16 @@ public final class VRImage {
         }
     }
 
+    /**
+     * Loads and returns the {@link Bitmap}s associated to this {@link VRImage} instance.
+     * Always returns a {@link Bitmap[]}, but if we have a {@link VRImageType#CUBIC} image it will be
+     * of length 6, and of length 1 for {@link VRImageType#EQUIRECTANGULAR}.
+     *
+     * @param context {@link Context} used to load the {@link Bitmap}s from
+     * @return a {@link Bitmap[]} containing what to display; or null if this image has no {@link VRImageType}.
+     * Has length 6 if is {@link VRImageType#CUBIC} or of length 1 for {@link VRImageType#EQUIRECTANGULAR}.
+     * @throws IOException if an error occured while attempting to get {@link Bitmap} from {@link #file}
+     */
     @Nullable
     public Bitmap[] getBitmap(@NonNull Context context) throws IOException {
         switch (vrImageType) {

@@ -31,6 +31,15 @@ import java.util.Stack;
 import ch.epfl.mmspg.testbed360.image.ImageUtils;
 import ch.epfl.mmspg.testbed360.image.VRImage;
 
+/**
+ * Custom implementation of Rajawali's {@link VRActivity}. Provides necessary methods to control the
+ * app's storyboard's flow.
+ * It works as a controller or {@link VRImage} which loads them {@link #onStart()} and then provide
+ * them through the app execution, provided that some are still available.
+ *
+ * @author Louis-Maxence Garret <louis-maxence.garret@epfl.ch>
+ * @date 29/10/2017
+ */
 public class VRViewActivity extends VRActivity {
     private final static String TAG = "VRViewActivity";
     private VRViewRenderer mRenderer;
@@ -60,10 +69,12 @@ public class VRViewActivity extends VRActivity {
         setConvertTapIntoTrigger(true);
 
         try {
+            //We init the training images here
             List<VRImage> vrImgs = ImageUtils.distinctShuffle(ImageUtils.loadVRImages(this, VRScene.MODE_TRAINING));
             Collections.reverse(vrImgs); // we reverse here as it will be inverted in the stack after
             TRAINING_IMAGES.addAll(vrImgs);
 
+            //And we init the evaluation pictures
             vrImgs = ImageUtils.distinctShuffle(ImageUtils.loadVRImages(this, VRScene.MODE_EVALUATION));
             Collections.reverse(vrImgs); // we reverse here as it will be inverted in the stack after
             EVALUATION_IMAGES.addAll(vrImgs);
@@ -92,10 +103,18 @@ public class VRViewActivity extends VRActivity {
         super.onResume();
     }
 
+    /**
+     * @return the next not yet displayed training {@link VRImage}
+     * @throws EmptyStackException in case there is no training {@link VRImage} not yet displayed !
+     */
     public static VRImage nextTraining() throws EmptyStackException {
         return TRAINING_IMAGES.pop();
     }
 
+    /**
+     * @return the next not yet displayed evaluation {@link VRImage}
+     * @throws EmptyStackException in case there is no evaluation {@link VRImage} not yet displayed !
+     */
     public static VRImage nextEvaluation() throws EmptyStackException {
         return EVALUATION_IMAGES.pop();
     }

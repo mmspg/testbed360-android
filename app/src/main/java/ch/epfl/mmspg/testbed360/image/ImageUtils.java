@@ -21,14 +21,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import static ch.epfl.mmspg.testbed360.VRScene.MODE_EVALUATION;
 import static ch.epfl.mmspg.testbed360.VRScene.MODE_TRAINING;
 
 /**
  * Helper class including various methods used to decode and manipulate {@link Bitmap}s, but also
- * extracts some informations from {@link java.io.File} images.
+ * extracts some information from {@link java.io.File} images.
  *
  * @author Louis-Maxence Garret <louis-maxence.garret@epfl.ch>
  * @date 29/10/2017
@@ -46,12 +45,12 @@ public final class ImageUtils {
     /**
      * Loads a region of a {@link Bitmap}
      *
-     * @param decoder      the {@link BitmapRegionDecoder} to be used
-     * @param reusableBitmap      a {@link Bitmap} we want to reuse
-     * @param regionLeft   the ratio on the {@link Bitmap} corresponding to the left side of the region
-     * @param regionTop    the ratio on the {@link Bitmap} corresponding to the top side of the region
-     * @param regionRight  the ratio on the {@link Bitmap} corresponding to the right side of the region
-     * @param regionBottom the ratio on the {@link Bitmap} corresponding to the bottom side of the region
+     * @param decoder        the {@link BitmapRegionDecoder} to be used
+     * @param reusableBitmap a {@link Bitmap} we want to reuse
+     * @param regionLeft     the ratio on the {@link Bitmap} corresponding to the left side of the region
+     * @param regionTop      the ratio on the {@link Bitmap} corresponding to the top side of the region
+     * @param regionRight    the ratio on the {@link Bitmap} corresponding to the right side of the region
+     * @param regionBottom   the ratio on the {@link Bitmap} corresponding to the bottom side of the region
      * @return a {@link Bitmap} containing the wanted region or null if the image data could not be
      * decoded.
      */
@@ -92,7 +91,7 @@ public final class ImageUtils {
     /**
      * See {@link #loadCubicMap(InputStream)}
      *
-     * @param image   the image containing the {@link VRImage#file} to read from
+     * @param image the image containing the {@link VRImage#file} to read from
      * @return a {@link Bitmap} array of length 6, containing each faces of the cube, or containing null
      * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, Bitmap, float, float, float, float)}
      * @throws IOException if the image format is not supported or can not be decoded. (see {@link BitmapRegionDecoder#newInstance(InputStream, boolean)}
@@ -106,7 +105,7 @@ public final class ImageUtils {
      * Helper methods to load a cube map image into an array of {@link Bitmap}s. The order of faces
      * is : left, right, top, bottom, back, front
      *
-     * @param stream  the stream to read the image from. This methods closes it when done.
+     * @param stream the stream to read the image from. This methods closes it when done.
      * @return a {@link Bitmap} array of length 6, containing each faces of the cube, or containing null
      * for a face if there was an error loading the {@link Bitmap} ( see {@link #loadBitmapRegion(BitmapRegionDecoder, Bitmap, float, float, float, float)}
      * @throws IOException if the image format is not supported or can not be decoded. (see {@link BitmapRegionDecoder#newInstance(InputStream, boolean)}
@@ -493,6 +492,7 @@ public final class ImageUtils {
 
     /**
      * Loads the Equirectangular image of the given {@link VRImage}.
+     *
      * @param image the {@link VRImage} to load the {@link Bitmap} from
      * @return a {@link Bitmap} array containing only the equirectangular {@link Bitmap}
      */

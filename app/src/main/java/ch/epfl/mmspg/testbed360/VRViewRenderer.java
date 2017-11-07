@@ -1,8 +1,6 @@
 package ch.epfl.mmspg.testbed360;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -10,18 +8,21 @@ import android.view.MotionEvent;
 import com.google.vrtoolkit.cardboard.Eye;
 
 import org.rajawali3d.Object3D;
-import org.rajawali3d.materials.Material;
-import org.rajawali3d.materials.textures.ATexture;
-import org.rajawali3d.materials.textures.Texture;
 import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.math.vector.Vector3;
-import org.rajawali3d.primitives.Line3D;
-import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.vr.renderer.VRRenderer;
 
-import java.io.IOException;
-import java.util.Stack;
-
+/**
+ * Custom implementation of Rajawali's {@link VRRenderer}. Some custom methods are necessary to have
+ * our {@link VRScene} logic working as intended, but also to fix some issues that are not yet addressed
+ * by the library's developers.
+ * This component is to be used as a Android UI fullscreen component that handles alone the VR part
+ * of this project (camera angle, lens distortion according to the used Cardboard viewer, etc...),
+ * letting us only care about what we want to display !
+ *
+ * @author Louis-Maxence Garret <louis-maxence.garret@epfl.ch>
+ * @date 19/10/2017
+ */
 public class VRViewRenderer extends VRRenderer {
 
     private final static String TAG = "VRViewRenderer";
@@ -33,6 +34,10 @@ public class VRViewRenderer extends VRRenderer {
         super(context);
     }
 
+    /**
+     * Override the {@link VRRenderer#initScene()} method to start with a new {@link WelcomeScene},
+     * and centers the {@link #getCurrentCamera()}.
+     */
     @Override
     public void initScene() {
         switchScene(new WelcomeScene(this));
@@ -41,6 +46,13 @@ public class VRViewRenderer extends VRRenderer {
         getCurrentCamera().setFieldOfView(100);
     }
 
+    /**
+     * Overrides the {@link VRRenderer#onDrawEye(Eye)} to allow updating our VR UI (represented by
+     * {@link ch.epfl.mmspg.testbed360.ui.VRMenu} and {@link ch.epfl.mmspg.testbed360.ui.VRButton} inside
+     * our {@link VRScene}s; but this also addresses an issue with the gyroscopic controls being inverted.
+     *
+     * @param eye the eye currently drawn
+     */
     @Override
     public void onDrawEye(Eye eye) {
         getCurrentCamera().updatePerspective(
@@ -65,6 +77,11 @@ public class VRViewRenderer extends VRRenderer {
         super.onRenderFrame(null);
     }
 
+    /**
+     * Does quite the same as {@link VRRenderer#isLookingAtObject(Object3D, float)}, but follows the
+     * fix done in {@link #onDrawEye(Eye)} for the inverted camera issue so that the computation done
+     * in this method is correct !
+     */
     @Override
     public boolean isLookingAtObject(Object3D target, float maxAngle) {
         mHeadViewQuaternion.fromMatrix(mHeadViewMatrix);
@@ -83,14 +100,16 @@ public class VRViewRenderer extends VRRenderer {
         return mHeadTranslation.angle(mForwardVec) < maxAngle;
     }
 
-    protected Matrix4 getMHeadViewMatrix(){
+    protected Matrix4 getMHeadViewMatrix() {
         return mHeadViewMatrix;
     }
 
+    /**
+     * This method must be redefined but is not useful in our implementation
+     */
     @Override
     public void onOffsetsChanged(float xOffset, float yOffset, float xOffsetStep, float yOffsetStep, int xPixelOffset,
                                  int yPixelOffset) {
-
     }
 
     /**
@@ -101,6 +120,10 @@ public class VRViewRenderer extends VRRenderer {
     public void onTouchEvent(MotionEvent event) {
     }
 
+
+    /**
+     * Propagates the Cardboard trigger to the current scene
+     */
     public void onCardboardTrigger() {
         Log.d(TAG, "Cardboard trigger");
         if (getCurrentVRScene() != null) {
@@ -108,6 +131,13 @@ public class VRViewRenderer extends VRRenderer {
         }
     }
 
+    /**
+     * Fetches the current scene only if it's a {@link VRScene} (which is always the case but better
+     * safe than sorry)
+     *
+     * @return the current {@link VRScene} or null if the {@link android.transition.Scene} in not an
+     * instance of {@link VRScene}
+     */
     @Nullable
     private VRScene getCurrentVRScene() {
         if (getCurrentScene() instanceof VRScene) {

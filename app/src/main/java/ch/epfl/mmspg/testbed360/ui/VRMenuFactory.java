@@ -22,7 +22,6 @@ import ch.epfl.mmspg.testbed360.image.VRImage;
 public final class VRMenuFactory {
     private final static float STANDARD_BUTTON_WIDTH = 10f;
     private final static float STANDARD_BUTTON_HEIGHT = 2f;
-    private final static float STANDARD_MENU_DISTANCE = 20f;
     //TODO remove or set false this in production, only for debugging
     private final static boolean RENDER_FPS = true;
 
@@ -38,7 +37,7 @@ public final class VRMenuFactory {
      * @return the initialized and ready to use {@link VRMenu}
      */
     public static VRMenu buildWelcomeMenu(final Renderer renderer) {
-        VRMenu menu = new VRMenu(STANDARD_MENU_DISTANCE);
+        VRMenu menu = new VRMenu();
 
         try {
             //TODO add the tutorial in this button, and store the string value in xml !
@@ -110,7 +109,7 @@ public final class VRMenuFactory {
      * @return the initialized and ready to use {@link VRMenu}
      */
     public static VRMenu buildTrainingGradeMenu(final Renderer renderer, VRImage img) {
-        VRMenu menu = new VRMenu(20);
+        VRMenu menu = new VRMenu();
         menu.setY(4);
 
         try {
@@ -162,7 +161,7 @@ public final class VRMenuFactory {
      * @return the initialized and ready to use {@link VRMenu}
      */
     public static VRMenu buildEvaluationGradeMenu(final Renderer renderer, VRImage img) {
-        VRMenu menu = new VRMenu(20);
+        VRMenu menu = new VRMenu();
         menu.setY(4);
 
         try {

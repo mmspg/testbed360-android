@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Vibrator;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,7 +45,7 @@ import ch.epfl.mmspg.testbed360.VRViewRenderer;
  * @date 20/10/2017
  */
 
-public class VRButton extends RectangularPrism implements Recyclable {
+public class VRButton extends RectangularPrism implements VRUI {
     private final static String TAG = "VRButton";
 
     private final static int BUTTON_BG_COLOR = Color.argb(45, 55, 55, 55);
@@ -203,34 +204,6 @@ public class VRButton extends RectangularPrism implements Recyclable {
         this.isHovered = isHovered;
     }
 
-
-    /**
-     * Checks whether the button is being pressed (i.e. {@link #isHovered}, as we now there was a
-     * trigger/touch done) and execute the {@link #onTriggerAction} associated to it.
-     *
-     * @return true if the event was consumed, false otherwise. This should be checked to not propagate
-     * the trigger uselessly to other buttons
-     */
-    public boolean onCardboardTrigger() {
-        if (isHovered) {
-            if (isSelectable) {
-                vibrate(VIBRATION_PRESS_MS);
-
-                setSelected(!isSelected);
-                if (onTriggerAction != null) {
-                    try {
-                        onTriggerAction.call();
-                    } catch (Exception e) {
-                        Log.e(TAG, buttonId + ": error executing onTriggerAction");
-                        e.printStackTrace();
-                    }
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
     public Callable getOnTriggerAction() {
         return onTriggerAction;
     }
@@ -300,6 +273,45 @@ public class VRButton extends RectangularPrism implements Recyclable {
         isSelectable = selectable;
     }
 
+    /**
+     * Checks whether the button is being pressed (i.e. {@link #isHovered}, as we now there was a
+     * trigger/touch done) and execute the {@link #onTriggerAction} associated to it.
+     *
+     * @return true if the event was consumed, false otherwise. This should be checked to not propagate
+     * the trigger uselessly to other buttons
+     */
+    @Override
+    public boolean onCardboardTrigger() {
+        if (isHovered) {
+            if (isSelectable) {
+                vibrate(VIBRATION_PRESS_MS);
+
+                setSelected(!isSelected);
+                if (onTriggerAction != null) {
+                    try {
+                        onTriggerAction.call();
+                    } catch (Exception e) {
+                        Log.e(TAG, buttonId + ": error executing onTriggerAction");
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onDrawing(@NonNull VRViewRenderer vrViewRenderer) {
+        //nothing to do !
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void recycle() {
         mReusableBitmaps.add(bitmapTexture);

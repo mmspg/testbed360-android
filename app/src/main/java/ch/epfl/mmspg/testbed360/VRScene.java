@@ -24,9 +24,9 @@ import java.io.IOException;
 import ch.epfl.mmspg.testbed360.image.ImageGrade;
 import ch.epfl.mmspg.testbed360.image.VRImage;
 import ch.epfl.mmspg.testbed360.image.VRImageType;
-import ch.epfl.mmspg.testbed360.ui.Recyclable;
 import ch.epfl.mmspg.testbed360.ui.VRMenu;
 import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
+import ch.epfl.mmspg.testbed360.ui.VRUI;
 
 /**
  * A {@link VRScene} corresponds to a stage of a storyboard where a {@link VRImage} is being displayed
@@ -38,7 +38,7 @@ import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
  * see {@link VRMenuFactory#buildTrainingGradeMenu(Renderer, VRImage)}
  * - {@link #MODE_EVALUATION} where the user is required to set an {@link ImageGrade} in order to pass
  * to the next {@link VRScene}.
- *
+ * <p>
  * Also, depending on the given {@link VRImage}, an equirectangular projection (onto a {@link Sphere})
  * or a cubic projection (onto {@link Scene#mSkybox}) is used to display the image.
  * <p>
@@ -49,7 +49,7 @@ import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
  * @date 30/10/2017
  */
 
-public class VRScene extends Scene implements Recyclable {
+public class VRScene extends Scene implements VRUI {
     private final static String TAG = "VRScene";
 
     /**
@@ -102,8 +102,9 @@ public class VRScene extends Scene implements Recyclable {
      * used to get a {@link Context} to load images (see {@link VRImage#getBitmap(Context)}.
      * Depending on the {@link VRImage#getVrImageType()}, we use equirectangular (using {@link #sphere})
      * or cubic (using {@link VRScene#mSkybox} projections.
+     *
      * @param renderer the {@link Renderer} used to display this scene
-     * @param image the {@link VRImage} that is to be displayed in this scene
+     * @param image    the {@link VRImage} that is to be displayed in this scene
      */
     public VRScene(@NonNull Renderer renderer, @Nullable VRImage image) {
         super(renderer);
@@ -130,6 +131,7 @@ public class VRScene extends Scene implements Recyclable {
      * Inits the {@link Sphere} used for equirectangular projection. Basically creates it, checks
      * the {@link #sphereTexture} and {@link #sphereMaterial} and update them with the {@link VRImage}'s
      * {@link Bitmap}, then bind it to the newly created sphere.
+     *
      * @param context {@link Context} to load the {@link Bitmap}s from
      */
     private void initSphere(@NonNull Context context) {
@@ -164,6 +166,7 @@ public class VRScene extends Scene implements Recyclable {
     /**
      * Inits the {@link VRScene#mSkybox} used for cubic projection. Basically gets the {@link VRImage}'s
      * {@link Bitmap}s, then bind them to the scene's skybox.
+     *
      * @param context {@link Context} to load the {@link Bitmap}s from
      */
     private void initCube(@NonNull Context context) {
@@ -200,6 +203,7 @@ public class VRScene extends Scene implements Recyclable {
     /**
      * Inits the scene's {@link VRMenu}, depending on whether there already is a grade for the given
      * {@link VRImage} (in which case we are in {@link #MODE_TRAINING}), or not ({@link #MODE_EVALUATION}).
+     *
      * @param renderer the {@link Renderer} used to draw the {@link VRMenu}
      */
     protected void initMenu(Renderer renderer) {
@@ -217,39 +221,8 @@ public class VRScene extends Scene implements Recyclable {
     }
 
     /**
-     * If the {@link #menu} is not visible yet, shows it as long as the {@link #selectionDot}. Otherwise,
-     * propagates the Cardboard trigger to the {@link #menu} so that it can determine which UI component
-     * to trigger.
-     */
-    public void onCardboardTrigger() {
-        if (!isRecycled && menu != null) {
-            if (menu.isVisible()) {
-                menu.onCardboardTrigger();
-            } else {
-                menu.setVisible(true);
-                selectionDot.setVisible(true);
-            }
-        }
-    }
-
-    /**
-     * Called for every {@link VRViewRenderer#onDrawEye(Eye)}. Executes drawing actions for the {@link #menu}
-     * and centers the {@link #selectionDot}.
-     * @param vrViewRenderer the {@link VRViewRenderer} drawing.
-     */
-    public void onDrawing(@NonNull VRViewRenderer vrViewRenderer) {
-        if(!isRecycled) {
-            if (menu != null && menu.isVisible()) {
-                menu.onDrawing(vrViewRenderer);
-            }
-            if (selectionDot != null) {
-                centerSelectionDot(vrViewRenderer);
-            }
-        }
-    }
-
-    /**
      * Centers the {@link #selectionDot} on the screen
+     *
      * @param renderer the {@link VRViewRenderer} on which the {@link #selectionDot} is being drawn
      */
     private void centerSelectionDot(@NonNull VRViewRenderer renderer) {
@@ -265,20 +238,56 @@ public class VRScene extends Scene implements Recyclable {
     }
 
     /**
-     * {@inheritDoc Recyclable}
+     * If the {@link #menu} is not visible yet, shows it as long as the {@link #selectionDot}. Otherwise,
+     * propagates the Cardboard trigger to the {@link #menu} so that it can determine which UI component
+     * to trigger.
+     */
+    @Override
+    public boolean onCardboardTrigger() {
+        if (!isRecycled && menu != null) {
+            if (menu.isVisible()) {
+                menu.onCardboardTrigger();
+            } else {
+                menu.setVisible(true);
+                selectionDot.setVisible(true);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Called for every {@link VRViewRenderer#onDrawEye(Eye)}. Executes drawing actions for the {@link #menu}
+     * and centers the {@link #selectionDot}.
+     *
+     * @param vrViewRenderer the {@link VRViewRenderer} drawing.
+     */
+    @Override
+    public void onDrawing(@NonNull VRViewRenderer vrViewRenderer) {
+        if (!isRecycled) {
+            if (menu != null && menu.isVisible()) {
+                menu.onDrawing(vrViewRenderer);
+            }
+            if (selectionDot != null) {
+                centerSelectionDot(vrViewRenderer);
+            }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void recycle() {
         isRecycled = true;
         menu.recycle();
 
-        if(vrImage == null || vrImage.getVrImageType().equals(VRImageType.CUBIC)){
+        if (vrImage == null || vrImage.getVrImageType().equals(VRImageType.CUBIC)) {
             if (mSkyboxTexture != null) {
                 mSkyboxTexture.shouldRecycle(true);
                 TextureManager.getInstance().removeTexture(mSkyboxTexture);
                 mSkyboxTexture = null;
             }
-        } else if (vrImage.getVrImageType().equals(VRImageType.EQUIRECTANGULAR)){
+        } else if (vrImage.getVrImageType().equals(VRImageType.EQUIRECTANGULAR)) {
             if (sphereTexture != null) {
                 sphereTexture.shouldRecycle(true);
                 sphereMaterial.removeTexture(sphereTexture);
