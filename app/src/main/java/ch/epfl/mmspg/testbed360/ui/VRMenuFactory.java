@@ -2,7 +2,6 @@ package ch.epfl.mmspg.testbed360.ui;
 
 import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.renderer.Renderer;
-import org.rajawali3d.util.OnFPSUpdateListener;
 
 import java.util.EmptyStackException;
 import java.util.concurrent.Callable;
@@ -57,8 +56,9 @@ public final class VRMenuFactory {
                 @Override
                 public Object call() throws Exception {
                     try {
+                        VRImage next = VRViewActivity.nextTraining();
                         ((VRScene) renderer.getCurrentScene()).shouldRecycle(true);
-                        renderer.switchScene(new VRScene(renderer, VRViewActivity.nextTraining()));
+                        renderer.switchScene(new VRScene(renderer, next));
                     } catch (EmptyStackException e) {
                         startButton.setText("No new image"); //TODO put text in strings.xml
                     }
@@ -129,11 +129,14 @@ public final class VRMenuFactory {
                             @Override
                             public Object call() throws Exception {
                                 try {
+                                    VRImage next = VRViewActivity.nextTraining();
                                     ((VRScene) renderer.getCurrentScene()).shouldRecycle(true);
-                                    renderer.switchScene(new VRScene(renderer, VRViewActivity.nextTraining()));
+                                    renderer.switchScene(new VRScene(renderer, next));
                                 } catch (EmptyStackException e) {
                                     try {
-                                        renderer.switchScene(new VRScene(renderer, VRViewActivity.nextEvaluation()));
+                                        VRImage next = VRViewActivity.nextEvaluation();
+                                        ((VRScene) renderer.getCurrentScene()).shouldRecycle(true);
+                                        renderer.switchScene(new VRScene(renderer, next));
                                     } catch (EmptyStackException e2) {
                                         button.setText("No new image"); //TODO put text in strings.xml
                                     }
@@ -174,8 +177,9 @@ public final class VRMenuFactory {
                         @Override
                         public Object call() throws Exception {
                             try {
+                                VRImage next = VRViewActivity.nextEvaluation();
                                 ((VRScene) renderer.getCurrentScene()).shouldRecycle(true);
-                                renderer.switchScene(new VRScene(renderer, VRViewActivity.nextEvaluation()));
+                                renderer.switchScene(new VRScene(renderer, next));
                             } catch (EmptyStackException e) {
                                 button.setText("No new image"); //TODO put text in strings.xml
                             }

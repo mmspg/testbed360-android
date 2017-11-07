@@ -493,12 +493,10 @@ public final class ImageUtils {
     }
 
     public static Bitmap[] loadSphereBitmap(Context context, VRImage image) throws ExecutionException, InterruptedException {
-        /*FutureTarget<Bitmap> target = Glide.with(context).asBitmap().load(image.getFile()).submit();
-        return new Bitmap[]{target.get()};*/
         BitmapFactory.Options opt = new BitmapFactory.Options();
         opt.inPreferredConfig = Bitmap.Config.RGB_565;
         opt.inBitmap = sphereBitmap[0];
         opt.inMutable = true;
-        return new Bitmap[]{BitmapFactory.decodeFile(image.getFile().getAbsolutePath(),opt)};
+        return new Bitmap[]{BitmapFactory.decodeFile(image.getFile().getAbsolutePath(), opt)};
     }
 }

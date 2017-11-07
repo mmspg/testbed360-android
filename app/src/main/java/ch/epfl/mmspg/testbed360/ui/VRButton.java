@@ -2,7 +2,6 @@ package ch.epfl.mmspg.testbed360.ui;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -22,7 +21,6 @@ import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.RectangularPrism;
 
 import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -65,7 +63,7 @@ public class VRButton extends RectangularPrism implements Recyclable {
     private static int BUTTON_COUNTER = 0;
 
     private SoftReference<Bitmap> bitmapTexture;
-    private Texture texture;
+    private SoftReference<Texture> texture;
 
     private View layoutView;
     private TextView textView;
@@ -116,11 +114,11 @@ public class VRButton extends RectangularPrism implements Recyclable {
         textView.layout(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
         bitmapTexture = new SoftReference<Bitmap>(findUsableBitmap());
-        texture = new Texture(buttonId, bitmapTexture.get());
+        texture = new SoftReference<Texture>(new Texture(buttonId, bitmapTexture.get()));
         Material prismMaterial = new Material();
         prismMaterial.setColorInfluence(0);
 
-        prismMaterial.addTexture(texture);
+        prismMaterial.addTexture(texture.get());
         setMaterial(prismMaterial);
 
         setText(text);
@@ -177,11 +175,11 @@ public class VRButton extends RectangularPrism implements Recyclable {
      * or changing the backround color
      */
     private void redraw() {
-        if(bitmapTexture.get().isMutable()) {
+        if (bitmapTexture.get().isMutable()) {
             Canvas buttonCanvas = new Canvas(bitmapTexture.get());
             buttonCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.MULTIPLY);
             layoutView.draw(buttonCanvas);
-            TextureManager.getInstance().replaceTexture(texture);
+            TextureManager.getInstance().replaceTexture(texture.get());
         }
     }
 
@@ -305,6 +303,9 @@ public class VRButton extends RectangularPrism implements Recyclable {
     @Override
     public void shouldRecycle(boolean shouldRecycle) {
         mReusableBitmaps.add(bitmapTexture);
-        TextureManager.getInstance().removeTexture(texture);
+        TextureManager.getInstance().removeTexture(texture.get());
+        texture.clear();
+        layoutView = null;
+        textView = null;
     }
 }

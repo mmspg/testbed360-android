@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.textures.ATexture;
@@ -34,8 +35,9 @@ public class VRScene extends Scene implements Recyclable {
 
     public final static int MODE_TRAINING = 0;
     public final static int MODE_EVALUATION = 1;
+
     private static Texture sphereTexture;
-    private static Texture skyboxTexture;
+    private static Material sphereMaterial;
 
     private VRImage vrImage;
     private Sphere sphere;
@@ -44,7 +46,7 @@ public class VRScene extends Scene implements Recyclable {
     protected Sphere selectionDot;
     double[] newDotPos = new double[4];
     double[] initDotPos = {0, 0, -3, 1.0f};
-    double[] headViewMatrix_inv = new double[16];
+    double[] headViewMatrixInv = new double[16];
     Matrix4 headViewMatrix = new Matrix4();
 
     public VRScene(@NonNull Renderer renderer, @Nullable VRImage image) {
@@ -62,14 +64,17 @@ public class VRScene extends Scene implements Recyclable {
                 default:
                     break;
             }
+            Log.i(TAG, "Loaded with image " + vrImage);
         }
         initMenu(renderer);
         initSelectionDot();
     }
 
     private void initSphere(@NonNull Context context) {
-        Material material = new Material();
-        material.setColor(0);
+        if (sphereMaterial == null) {
+            sphereMaterial = new Material();
+            sphereMaterial.setColor(0);
+        }
 
         try {
             Bitmap[] bitmaps = vrImage.getBitmap(context);
@@ -78,10 +83,10 @@ public class VRScene extends Scene implements Recyclable {
             }
             if (sphereTexture == null) {
                 sphereTexture = new Texture("photo", bitmaps[0]);
-            }else{
+            } else {
                 sphereTexture.setBitmap(bitmaps[0]);
             }
-            material.addTexture(sphereTexture);
+            sphereMaterial.addTexture(sphereTexture);
         } catch (IOException | ATexture.TextureException e) {
             e.printStackTrace();
             //TODO display a vr message saying there was an issue loading image
@@ -89,7 +94,7 @@ public class VRScene extends Scene implements Recyclable {
 
         sphere = new Sphere(50, 64, 32);
         sphere.setScaleX(-1); //otherwise image is inverted
-        sphere.setMaterial(material);
+        sphere.setMaterial(sphereMaterial);
 
         addChild(sphere);
     }
@@ -158,7 +163,7 @@ public class VRScene extends Scene implements Recyclable {
     private void centerSelectionDot(@NonNull VRViewRenderer renderer) {
         headViewMatrix.setAll(renderer.getMHeadViewMatrix());
         headViewMatrix = headViewMatrix.inverse();
-        double[] headViewMatrixInv = new double[16];
+        headViewMatrixInv = new double[16];
         headViewMatrix.toArray(headViewMatrixInv);
 
         Matrix.multiplyMV(newDotPos, 0, headViewMatrixInv, 0, initDotPos, 0);
@@ -176,12 +181,13 @@ public class VRScene extends Scene implements Recyclable {
                     if (mSkyboxTexture != null) {
                         mSkyboxTexture.shouldRecycle(true);
                         TextureManager.getInstance().removeTexture(mSkyboxTexture);
-                        mSkybox.destroy();
+                        mSkyboxTexture = null;
                     }
                     break;
                 case EQUIRECTANGULAR:
                     if (sphereTexture != null) {
                         sphereTexture.shouldRecycle(true);
+                        sphereMaterial.removeTexture(sphereTexture);
                         TextureManager.getInstance().removeTexture(sphereTexture);
                     }
                     break;
@@ -192,8 +198,11 @@ public class VRScene extends Scene implements Recyclable {
             if (mSkyboxTexture != null) {
                 mSkyboxTexture.shouldRecycle(true);
                 TextureManager.getInstance().removeTexture(mSkyboxTexture);
-                mSkybox.destroy();
+                mSkyboxTexture = null;
             }
         }
+        menu = null;
+        destroyScene();
+        System.gc();
     }
 }

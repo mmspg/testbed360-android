@@ -5,20 +5,14 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.rajawali3d.materials.Material;
-import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Line3D;
 import org.rajawali3d.renderer.Renderer;
-import org.rajawali3d.util.OnFPSUpdateListener;
 
 import java.io.IOException;
-import java.util.EmptyStackException;
 import java.util.Stack;
-import java.util.concurrent.Callable;
 
 import ch.epfl.mmspg.testbed360.image.ImageUtils;
-import ch.epfl.mmspg.testbed360.ui.VRButton;
-import ch.epfl.mmspg.testbed360.ui.VRMenu;
 import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
 
 /**
@@ -35,7 +29,6 @@ public final class WelcomeScene extends VRScene {
 
     public WelcomeScene(@NonNull Renderer renderer) {
         super(renderer, null);
-
         try {
             setSkybox(ImageUtils.loadCubicMap(renderer.getContext(), R.drawable.jvet_kiteflite_cubemap32_2250x1500_raw_q00));
         } catch (IOException e) {
