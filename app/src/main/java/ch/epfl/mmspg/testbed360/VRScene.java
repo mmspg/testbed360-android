@@ -3,6 +3,7 @@ package ch.epfl.mmspg.testbed360;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -24,6 +25,8 @@ import java.io.IOException;
 import ch.epfl.mmspg.testbed360.image.ImageGrade;
 import ch.epfl.mmspg.testbed360.image.VRImage;
 import ch.epfl.mmspg.testbed360.image.VRImageType;
+import ch.epfl.mmspg.testbed360.tracking.TrackUtils;
+import ch.epfl.mmspg.testbed360.tracking.TrackingTask;
 import ch.epfl.mmspg.testbed360.ui.VRMenu;
 import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
 import ch.epfl.mmspg.testbed360.ui.VRUI;
@@ -97,6 +100,10 @@ public class VRScene extends Scene implements VRUI {
 
     private boolean isRecycled = false;
 
+    private final int mode;
+
+    private TrackingTask trackingTask;
+
     /**
      * Creates and initializes a {@link VRScene} with the given {@link VRImage} and the given {@link Renderer}
      * used to get a {@link Context} to load images (see {@link VRImage#getBitmap(Context)}.
@@ -106,9 +113,16 @@ public class VRScene extends Scene implements VRUI {
      * @param renderer the {@link Renderer} used to display this scene
      * @param image    the {@link VRImage} that is to be displayed in this scene
      */
-    public VRScene(@NonNull Renderer renderer, @Nullable VRImage image) {
+    public VRScene(@NonNull Renderer renderer, @Nullable VRImage image, int mode) {
         super(renderer);
         this.vrImage = image;
+
+        if (mode != MODE_EVALUATION && mode != MODE_TRAINING) {
+            throw new IllegalArgumentException(
+                    "Given mode does not exist : " + mode + ". Please use MODE_EVALUATION or MODE_TRAINiNG"
+            );
+        }
+        this.mode = mode;
 
         if (image != null) {
             switch (image.getVrImageType()) {
@@ -125,6 +139,11 @@ public class VRScene extends Scene implements VRUI {
         }
         initMenu(renderer);
         initSelectionDot();
+
+        if (mode == MODE_EVALUATION) {
+            trackingTask = TrackUtils.startTracking(this, renderer.getContext());
+        }
+
     }
 
     /**
@@ -201,23 +220,23 @@ public class VRScene extends Scene implements VRUI {
     }
 
     /**
-     * Inits the scene's {@link VRMenu}, depending on whether there already is a grade for the given
-     * {@link VRImage} (in which case we are in {@link #MODE_TRAINING}), or not ({@link #MODE_EVALUATION}).
+     * Inits the scene's {@link VRMenu}, depending on whether the set {@link #mode}
      *
      * @param renderer the {@link Renderer} used to draw the {@link VRMenu}
      */
     protected void initMenu(Renderer renderer) {
-        if (vrImage.getGrade().equals(ImageGrade.NONE)) {
-            //evaluation
-            menu = VRMenuFactory.buildEvaluationGradeMenu(renderer, vrImage);
-            menu.setVisible(false);
-            addChild(menu);
-        } else {
-            menu = VRMenuFactory.buildTrainingGradeMenu(renderer, vrImage);
-            menu.setVisible(false);
-            addChild(menu);
+        switch (mode) {
+            case MODE_TRAINING:
+                menu = VRMenuFactory.buildTrainingGradeMenu(renderer, vrImage);
+                menu.setVisible(false);
+                addChild(menu);
+                break;
+            case MODE_EVALUATION:
+                menu = VRMenuFactory.buildEvaluationGradeMenu(renderer, vrImage);
+                menu.setVisible(false);
+                addChild(menu);
+                break;
         }
-
     }
 
     /**
@@ -296,11 +315,34 @@ public class VRScene extends Scene implements VRUI {
             }
         }
 
+        if(trackingTask != null){
+            if(trackingTask.getStatus().equals(AsyncTask.Status.PENDING)
+                    || trackingTask.getStatus().equals(AsyncTask.Status.RUNNING)){
+                trackingTask.cancel(true);
+                Log.e(TAG,"Previous trackingTask did not finish properly !");
+            }
+        }
+
         menu = null;
         newDotPos = null;
         initDotPos = null;
         headViewMatrix = null;
         destroyScene();
         System.gc();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isRecycled() {
+        return isRecycled;
+    }
+
+    /**
+     * @return Gets the value of vrImage and returns vrImage
+     */
+    public VRImage getVrImage() {
+        return vrImage;
     }
 }

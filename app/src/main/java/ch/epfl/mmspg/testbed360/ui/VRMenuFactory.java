@@ -57,7 +57,7 @@ public final class VRMenuFactory {
                     try {
                         VRImage next = VRViewActivity.nextTraining();
                         ((VRScene) renderer.getCurrentScene()).recycle();
-                        renderer.switchScene(new VRScene(renderer, next));
+                        renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_TRAINING));
                     } catch (EmptyStackException e) {
                         startButton.setText("No new image"); //TODO put text in strings.xml
                     }
@@ -130,12 +130,12 @@ public final class VRMenuFactory {
                                 try {
                                     VRImage next = VRViewActivity.nextTraining();
                                     ((VRScene) renderer.getCurrentScene()).recycle();
-                                    renderer.switchScene(new VRScene(renderer, next));
+                                    renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_TRAINING));
                                 } catch (EmptyStackException e) {
                                     try {
                                         VRImage next = VRViewActivity.nextEvaluation();
                                         ((VRScene) renderer.getCurrentScene()).recycle();
-                                        renderer.switchScene(new VRScene(renderer, next));
+                                        renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_EVALUATION));
                                     } catch (EmptyStackException e2) {
                                         button.setText("No new image"); //TODO put text in strings.xml
                                     }
@@ -160,12 +160,12 @@ public final class VRMenuFactory {
      * @param renderer the {@link Renderer} used to switch between {@link org.rajawali3d.scene.Scene}
      * @return the initialized and ready to use {@link VRMenu}
      */
-    public static VRMenu buildEvaluationGradeMenu(final Renderer renderer, VRImage img) {
+    public static VRMenu buildEvaluationGradeMenu(final Renderer renderer, final VRImage img) {
         VRMenu menu = new VRMenu();
         menu.setY(4);
 
         try {
-            for (ImageGrade grade : ImageGrade.values()) {
+            for (final ImageGrade grade : ImageGrade.values()) {
                 if (!grade.equals(ImageGrade.NONE)) {
                     final VRButton button = new VRButton(renderer.getContext(),
                             grade.toString(renderer.getContext()),
@@ -176,9 +176,10 @@ public final class VRMenuFactory {
                         @Override
                         public Object call() throws Exception {
                             try {
+                                img.setGrade(grade);
                                 VRImage next = VRViewActivity.nextEvaluation();
                                 ((VRScene) renderer.getCurrentScene()).recycle();
-                                renderer.switchScene(new VRScene(renderer, next));
+                                renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_EVALUATION));
                             } catch (EmptyStackException e) {
                                 button.setText("No new image"); //TODO put text in strings.xml
                             }

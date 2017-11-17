@@ -24,6 +24,8 @@ public class VRMenu extends RectangularPrism implements VRUI {
     private float distance;
     private boolean following = true;
 
+    private boolean isRecycled = false;
+
     private String tag;
 
     public VRMenu() {
@@ -124,11 +126,20 @@ public class VRMenu extends RectangularPrism implements VRUI {
      */
     @Override
     public void recycle() {
+        isRecycled = true;
         setVisible(false);
         for (VRButton button : buttons) {
             button.recycle();
         }
         buttons.clear();
         destroy();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isRecycled() {
+        return isRecycled;
     }
 }

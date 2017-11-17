@@ -28,7 +28,7 @@ public final class WelcomeScene extends VRScene {
 
 
     public WelcomeScene(@NonNull Renderer renderer) {
-        super(renderer, null);
+        super(renderer, null, MODE_TRAINING);
         try {
             setSkybox(ImageUtils.loadCubicMap(renderer.getContext(), R.drawable.jvet_kiteflite_cubemap32_2250x1500_raw_q00));
         } catch (IOException e) {

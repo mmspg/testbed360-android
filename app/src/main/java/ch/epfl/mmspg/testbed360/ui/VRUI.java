@@ -22,6 +22,12 @@ public interface VRUI {
      */
     public void recycle();
 
+    /**
+     *
+     * @return whether this {@link VRUI} instance has been recycled
+     */
+    public boolean isRecycled();
+
 
     /**
      * Called whenever there was a Cardboard trigger (usually when the user touches the screen with

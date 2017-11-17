@@ -197,4 +197,7 @@ public final class VRImage {
         return file;
     }
 
+    public void setGrade(ImageGrade grade) {
+        this.grade = grade;
+    }
 }

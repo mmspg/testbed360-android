@@ -83,6 +83,7 @@ public class VRButton extends RectangularPrism implements VRUI {
     private VRMenu parentMenu;
 
     private Callable onTriggerAction;
+    private boolean isRecycled = false;
 
     /**
      * Creates a {@link VRButton}
@@ -314,10 +315,19 @@ public class VRButton extends RectangularPrism implements VRUI {
      */
     @Override
     public void recycle() {
+        isRecycled = true;
         mReusableBitmaps.add(bitmapTexture);
         TextureManager.getInstance().removeTexture(texture.get());
         texture.clear();
         layoutView = null;
         textView = null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isRecycled() {
+        return isRecycled;
     }
 }
