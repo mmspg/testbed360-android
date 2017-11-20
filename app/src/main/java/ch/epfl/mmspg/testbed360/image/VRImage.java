@@ -180,10 +180,12 @@ public final class VRImage {
      *
      * @return a {@link String} containing the {@link #author} and {@link #title} concatenated.
      */
+    @NonNull
     public String getSlug() {
         return author + ":" + title;
     }
 
+    @NonNull
     public VRImageType getVrImageType() {
         return vrImageType;
     }
@@ -193,11 +195,12 @@ public final class VRImage {
         return grade;
     }
 
+    @NonNull
     public File getFile() {
         return file;
     }
 
-    public void setGrade(ImageGrade grade) {
+    public void setGrade(@NonNull ImageGrade grade) {
         this.grade = grade;
     }
 }

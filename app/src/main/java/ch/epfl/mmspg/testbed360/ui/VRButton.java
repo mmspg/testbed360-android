@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -94,7 +95,7 @@ public class VRButton extends RectangularPrism implements VRUI {
      * @param height  the height (in OpenGL coordinates) of the button
      * @throws ATexture.TextureException in case there was an error binding the initial texture
      */
-    public VRButton(Context context, String text, float width, float height) throws ATexture.TextureException {
+    public VRButton(@NonNull Context context, @Nullable String text, float width, float height) throws ATexture.TextureException {
         super(width, height, 0f);
         this.width = width;
         this.height = height;
@@ -129,6 +130,7 @@ public class VRButton extends RectangularPrism implements VRUI {
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
     }
 
+    @NonNull
     private static Bitmap findUsableBitmap() {
         Bitmap bitmap = null;
 
@@ -162,7 +164,7 @@ public class VRButton extends RectangularPrism implements VRUI {
      *
      * @param newText the new text to set
      */
-    public void setText(String newText) {
+    public void setText(@Nullable String newText) {
         boolean needRedraw = this.text == null || !this.text.equals(newText);
         this.text = newText;
         textView.setText(text);
@@ -209,7 +211,7 @@ public class VRButton extends RectangularPrism implements VRUI {
         return onTriggerAction;
     }
 
-    public void setOnTriggerAction(Callable onTriggerAction) {
+    public void setOnTriggerAction(@Nullable Callable onTriggerAction) {
         this.onTriggerAction = onTriggerAction;
     }
 
@@ -238,11 +240,7 @@ public class VRButton extends RectangularPrism implements VRUI {
         }
     }
 
-    public VRMenu getParentMenu() {
-        return parentMenu;
-    }
-
-    public void setParentMenu(VRMenu parentMenu) {
+    public void setParentMenu(@NonNull VRMenu parentMenu) {
         this.parentMenu = parentMenu;
     }
 
@@ -255,6 +253,7 @@ public class VRButton extends RectangularPrism implements VRUI {
      * @return the absolute position of the {@link VRButton} in its world
      */
     @Override
+    @NonNull
     public Vector3 getPosition() {
         if (parentMenu != null) {
             return parentMenu.getPosition().clone().add(super.getPosition());

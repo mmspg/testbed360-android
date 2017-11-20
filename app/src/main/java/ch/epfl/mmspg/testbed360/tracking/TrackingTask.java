@@ -3,6 +3,7 @@ package ch.epfl.mmspg.testbed360.tracking;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.opencsv.CSVWriter;
@@ -90,7 +91,7 @@ public class TrackingTask extends AsyncTask<VRScene, String[], VRImage> {
      *                see {@link #getSessionTrackFile(Context)}
      *                see {@link #getTrackFile(long, Context)}
      */
-    public TrackingTask(VRScene vrScene, Context context) {
+    public TrackingTask(@NonNull VRScene vrScene,@NonNull Context context) {
         if (vrScene.getMode() != VRScene.MODE_EVALUATION) {
             throw new IllegalStateException("The VRScene must be in MODE_EVALUATION to be tracked");
         }
@@ -135,6 +136,7 @@ public class TrackingTask extends AsyncTask<VRScene, String[], VRImage> {
      * @return the {@link VRImage} of the scene, which should be graded at this time.
      */
     @Override
+    @Nullable
     protected VRImage doInBackground(@NonNull VRScene... vrScenes) {
         if (vrScenes[0] == null) {
             throw new IllegalArgumentException("Given VRScene was null !");
@@ -171,7 +173,7 @@ public class TrackingTask extends AsyncTask<VRScene, String[], VRImage> {
      * @param result the graded {@link VRImage} of the {@link #vrScene}
      */
     @Override
-    protected void onPostExecute(VRImage result) {
+    protected void onPostExecute(@Nullable VRImage result) {
         if (result != null) {
             try {
                 logGrade(
@@ -258,7 +260,7 @@ public class TrackingTask extends AsyncTask<VRScene, String[], VRImage> {
      *
      * @param context see {@link #getSessionTrackFile(Context)}
      */
-    private static void initSessionTrackCSVWriter(Context context) {
+    private static void initSessionTrackCSVWriter(@NonNull Context context) {
         File sessionTrackFile = getSessionTrackFile(context);
         try {
             if (SESSION_TRACK_CSV_WRITER == null) {
@@ -293,7 +295,7 @@ public class TrackingTask extends AsyncTask<VRScene, String[], VRImage> {
      * @param imgGrade the {@link ImageGrade} given to the {@link VRImage}
      * @param trackId  see {@link #trackId}
      */
-    private static void logGrade(String imgName, ImageGrade imgGrade, long trackId) {
+    private static void logGrade(@NonNull String imgName, @NonNull ImageGrade imgGrade, long trackId) {
         SESSION_TRACK_CSV_WRITER.writeNext(new String[]{
                 imgName,
                 Integer.toString(imgGrade.toInt()),

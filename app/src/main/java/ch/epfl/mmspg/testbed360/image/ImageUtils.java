@@ -54,9 +54,10 @@ public final class ImageUtils {
      * @return a {@link Bitmap} containing the wanted region or null if the image data could not be
      * decoded.
      */
+    @Nullable
     private static Bitmap loadBitmapRegion(
-            BitmapRegionDecoder decoder,
-            Bitmap reusableBitmap,
+            @NonNull BitmapRegionDecoder decoder,
+            @Nullable Bitmap reusableBitmap,
             float regionLeft, float regionTop,
             float regionRight, float regionBottom) {
         BitmapFactory.Options opt = new BitmapFactory.Options();
@@ -188,9 +189,14 @@ public final class ImageUtils {
      * @param angle  the angle of rotation, in degrees
      * @return the bitmap rotated with angle given
      */
-    public static Bitmap rotateBitmap(Bitmap bitmap, float angle) {
+    @Nullable
+    public static Bitmap rotateBitmap(@Nullable Bitmap bitmap, float angle) {
+        if(bitmap == null){
+            return null;
+        }
         Matrix matrix = new Matrix();
         matrix.postRotate(angle);
+        //TODO check memory usage of the following method !
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
@@ -496,7 +502,11 @@ public final class ImageUtils {
      * @param image the {@link VRImage} to load the {@link Bitmap} from
      * @return a {@link Bitmap} array containing only the equirectangular {@link Bitmap}
      */
-    public static Bitmap[] loadSphereBitmap(VRImage image) {
+    @NonNull
+    public static Bitmap[] loadSphereBitmap(@Nullable VRImage image) {
+        if(image == null){
+            return new Bitmap[6];
+        }
         BitmapFactory.Options opt = new BitmapFactory.Options();
         opt.inPreferredConfig = Bitmap.Config.RGB_565;
         opt.inBitmap = sphereBitmap[0];

@@ -18,6 +18,7 @@ package ch.epfl.mmspg.testbed360;
 
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -115,6 +116,7 @@ public class VRViewActivity extends VRActivity {
      * @return the next not yet displayed training {@link VRImage}
      * @throws EmptyStackException in case there is no training {@link VRImage} not yet displayed !
      */
+    @NonNull
     public static VRImage nextTraining() throws EmptyStackException {
         return TRAINING_IMAGES.pop();
     }
@@ -123,6 +125,7 @@ public class VRViewActivity extends VRActivity {
      * @return the next not yet displayed evaluation {@link VRImage}
      * @throws EmptyStackException in case there is no evaluation {@link VRImage} not yet displayed !
      */
+    @NonNull
     public static VRImage nextEvaluation() throws EmptyStackException {
         return EVALUATION_IMAGES.pop();
     }

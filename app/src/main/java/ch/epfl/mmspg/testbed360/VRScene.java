@@ -223,7 +223,7 @@ public class VRScene extends Scene implements VRUI {
      *
      * @param renderer the {@link Renderer} used to draw the {@link VRMenu}
      */
-    protected void initMenu(Renderer renderer) {
+    protected void initMenu(@NonNull Renderer renderer) {
         switch (mode) {
             case MODE_TRAINING:
                 menu = VRMenuFactory.buildTrainingGradeMenu(renderer, vrImage);
@@ -333,6 +333,7 @@ public class VRScene extends Scene implements VRUI {
     /**
      * @return Gets the value of vrImage and returns vrImage
      */
+    @Nullable
     public VRImage getVrImage() {
         return vrImage;
     }

@@ -1,5 +1,8 @@
 package ch.epfl.mmspg.testbed360.ui;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.renderer.Renderer;
 import org.rajawali3d.util.OnFPSUpdateListener;
@@ -37,7 +40,8 @@ public final class VRMenuFactory {
      * @param renderer the {@link Renderer} used to switch between {@link org.rajawali3d.scene.Scene}
      * @return the initialized and ready to use {@link VRMenu}
      */
-    public static VRMenu buildWelcomeMenu(final Renderer renderer) {
+    @NonNull
+    public static VRMenu buildWelcomeMenu(@NonNull final Renderer renderer) {
         VRMenu menu = new VRMenu();
 
         try {
@@ -104,7 +108,8 @@ public final class VRMenuFactory {
      * @return the ready to use {@link VRButton}, which is no selectable. (see {@link VRButton#isSelectable}
      * @throws ATexture.TextureException if there was a texturing error while constructing the button
      */
-    private static VRButton buildFPSButton(final Renderer renderer) throws ATexture.TextureException {
+    @NonNull
+    private static VRButton buildFPSButton(@NonNull final Renderer renderer) throws ATexture.TextureException {
         final VRButton fpsButton = new VRButton(renderer.getContext(),
                 "",
                 STANDARD_BUTTON_WIDTH,
@@ -131,7 +136,8 @@ public final class VRMenuFactory {
      * @param renderer the {@link Renderer} used to switch between {@link org.rajawali3d.scene.Scene}
      * @return the initialized and ready to use {@link VRMenu}
      */
-    public static VRMenu buildTrainingGradeMenu(final Renderer renderer, VRImage img) {
+    @NonNull
+    public static VRMenu buildTrainingGradeMenu(@NonNull final Renderer renderer, @Nullable VRImage img) {
         VRMenu menu = new VRMenu();
         menu.setY(4);
 
@@ -144,7 +150,7 @@ public final class VRMenuFactory {
                             STANDARD_BUTTON_HEIGHT
                     );
                     button.setSelectable(false);
-                    if (img.getGrade().equals(grade)) {
+                    if (img != null && img.getGrade().equals(grade)) {
                         button.setSelectable(true);
                         button.setSelected(true);
                         button.setOnTriggerAction(new Callable() {
@@ -183,7 +189,8 @@ public final class VRMenuFactory {
      * @param renderer the {@link Renderer} used to switch between {@link org.rajawali3d.scene.Scene}
      * @return the initialized and ready to use {@link VRMenu}
      */
-    public static VRMenu buildEvaluationGradeMenu(final Renderer renderer, final VRScene scene) {
+    @NonNull
+    public static VRMenu buildEvaluationGradeMenu(@NonNull final Renderer renderer, @NonNull final VRScene scene) {
         VRMenu menu = new VRMenu();
         menu.setY(4);
 
