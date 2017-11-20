@@ -3,7 +3,6 @@ package ch.epfl.mmspg.testbed360;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -25,7 +24,6 @@ import java.io.IOException;
 import ch.epfl.mmspg.testbed360.image.ImageGrade;
 import ch.epfl.mmspg.testbed360.image.VRImage;
 import ch.epfl.mmspg.testbed360.image.VRImageType;
-import ch.epfl.mmspg.testbed360.tracking.TrackUtils;
 import ch.epfl.mmspg.testbed360.tracking.TrackingTask;
 import ch.epfl.mmspg.testbed360.ui.VRMenu;
 import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
@@ -58,7 +56,7 @@ public class VRScene extends Scene implements VRUI {
     /**
      * The two different mode with which a {@link VRScene} can work.
      * see {@link VRMenuFactory#buildTrainingGradeMenu(Renderer, VRImage)}
-     * see {@link VRMenuFactory#buildEvaluationGradeMenu(Renderer, VRImage)}
+     * see {@link VRMenuFactory#buildEvaluationGradeMenu(Renderer, VRScene)}
      */
     public final static int MODE_TRAINING = 0;
     public final static int MODE_EVALUATION = 1;
@@ -141,7 +139,8 @@ public class VRScene extends Scene implements VRUI {
         initSelectionDot();
 
         if (mode == MODE_EVALUATION) {
-            trackingTask = TrackUtils.startTracking(this, renderer.getContext());
+            trackingTask = new TrackingTask(this, renderer.getContext());
+            trackingTask.startTracking();
         }
 
     }
@@ -232,7 +231,7 @@ public class VRScene extends Scene implements VRUI {
                 addChild(menu);
                 break;
             case MODE_EVALUATION:
-                menu = VRMenuFactory.buildEvaluationGradeMenu(renderer, vrImage);
+                menu = VRMenuFactory.buildEvaluationGradeMenu(renderer, this);
                 menu.setVisible(false);
                 addChild(menu);
                 break;
@@ -315,14 +314,6 @@ public class VRScene extends Scene implements VRUI {
             }
         }
 
-        if(trackingTask != null){
-            if(trackingTask.getStatus().equals(AsyncTask.Status.PENDING)
-                    || trackingTask.getStatus().equals(AsyncTask.Status.RUNNING)){
-                trackingTask.cancel(true);
-                Log.e(TAG,"Previous trackingTask did not finish properly !");
-            }
-        }
-
         menu = null;
         newDotPos = null;
         initDotPos = null;
@@ -344,5 +335,25 @@ public class VRScene extends Scene implements VRUI {
      */
     public VRImage getVrImage() {
         return vrImage;
+    }
+
+    /**
+     * Changes the g{@link ImageGrade} of the scene's {@link #vrImage}, and stops the associated
+     * {@link #trackingTask} so that it can log the {@link ImageGrade}.
+     *
+     * @param grade the {@link ImageGrade} given by the user to the {@link #vrImage}
+     */
+    public void setGrade(@NonNull ImageGrade grade) {
+        if (vrImage != null) {
+            vrImage.setGrade(grade);
+        }
+        if (trackingTask != null) {
+            trackingTask.stopTracking();
+        }
+
+    }
+
+    public int getMode() {
+        return mode;
     }
 }

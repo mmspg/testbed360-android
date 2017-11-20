@@ -30,6 +30,7 @@ import java.util.Stack;
 
 import ch.epfl.mmspg.testbed360.image.ImageUtils;
 import ch.epfl.mmspg.testbed360.image.VRImage;
+import ch.epfl.mmspg.testbed360.tracking.TrackingTask;
 
 /**
  * Custom implementation of Rajawali's {@link VRActivity}. Provides necessary methods to control the
@@ -101,6 +102,13 @@ public class VRViewActivity extends VRActivity {
     @Override
     public void onResume() {
         super.onResume();
+    }
+
+
+    @Override
+    public void onDestroy() {
+        TrackingTask.closeSessionTrackCSVWriter();
+        super.onDestroy();
     }
 
     /**

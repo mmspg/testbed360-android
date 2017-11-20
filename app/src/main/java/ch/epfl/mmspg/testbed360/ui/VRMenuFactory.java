@@ -2,6 +2,7 @@ package ch.epfl.mmspg.testbed360.ui;
 
 import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.renderer.Renderer;
+import org.rajawali3d.util.OnFPSUpdateListener;
 
 import java.util.EmptyStackException;
 import java.util.concurrent.Callable;
@@ -23,7 +24,7 @@ public final class VRMenuFactory {
     private final static float STANDARD_BUTTON_WIDTH = 10f;
     private final static float STANDARD_BUTTON_HEIGHT = 2f;
     //TODO remove or set false this in production, only for debugging
-    private final static boolean RENDER_FPS = true;
+    private final static boolean RENDER_FPS = false;
 
     private VRMenuFactory() {
         //do nothing, this constructor is private to follow the Factory Pattern
@@ -46,6 +47,7 @@ public final class VRMenuFactory {
             if (RENDER_FPS) {
                 menu.addButton(buildFPSButton(renderer));
             }
+
             final VRButton startButton = new VRButton(renderer.getContext(),
                     "Start training!", //TODO put text in strings.xml
                     STANDARD_BUTTON_WIDTH,
@@ -64,8 +66,29 @@ public final class VRMenuFactory {
                     return null;
                 }
             });
+
+            final VRButton skipTrainingButton = new VRButton(renderer.getContext(),
+                    "Skip training", //TODO put text in strings.xml
+                    STANDARD_BUTTON_WIDTH,
+                    STANDARD_BUTTON_HEIGHT);
+            skipTrainingButton.setName("skipTrainingButton");
+            skipTrainingButton.setOnTriggerAction(new Callable() {
+                @Override
+                public Object call() throws Exception {
+                    try {
+                        VRImage next = VRViewActivity.nextEvaluation();
+                        ((VRScene) renderer.getCurrentScene()).recycle();
+                        renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_EVALUATION));
+                    } catch (EmptyStackException e) {
+                        startButton.setText("No new image"); //TODO put text in strings.xml
+                    }
+                    return null;
+                }
+            });
             menu.addButton(welcomeButton);
             menu.addButton(startButton);
+
+            menu.addButton(skipTrainingButton);
         } catch (ATexture.TextureException e) {
             e.printStackTrace();
         }
@@ -87,7 +110,7 @@ public final class VRMenuFactory {
                 STANDARD_BUTTON_WIDTH,
                 STANDARD_BUTTON_HEIGHT);
         fpsButton.setName("FPSButton");
-        /*renderer.setFPSUpdateListener(new OnFPSUpdateListener() {
+        renderer.setFPSUpdateListener(new OnFPSUpdateListener() {
             @Override
             public void onFPSUpdate(double fps) {
                 //pretty sure we have to divide per two because this method was thought
@@ -95,7 +118,7 @@ public final class VRMenuFactory {
                 //us here ~120FPS which seems way too much!
                 fpsButton.setText("FPS:" + Math.round(fps) / 2.0);
             }
-        });*/
+        });
         fpsButton.setSelectable(false);
         return fpsButton;
     }
@@ -160,7 +183,7 @@ public final class VRMenuFactory {
      * @param renderer the {@link Renderer} used to switch between {@link org.rajawali3d.scene.Scene}
      * @return the initialized and ready to use {@link VRMenu}
      */
-    public static VRMenu buildEvaluationGradeMenu(final Renderer renderer, final VRImage img) {
+    public static VRMenu buildEvaluationGradeMenu(final Renderer renderer, final VRScene scene) {
         VRMenu menu = new VRMenu();
         menu.setY(4);
 
@@ -176,7 +199,7 @@ public final class VRMenuFactory {
                         @Override
                         public Object call() throws Exception {
                             try {
-                                img.setGrade(grade);
+                                scene.setGrade(grade);
                                 VRImage next = VRViewActivity.nextEvaluation();
                                 ((VRScene) renderer.getCurrentScene()).recycle();
                                 renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_EVALUATION));
