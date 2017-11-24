@@ -24,12 +24,9 @@ import android.view.WindowManager;
 
 import org.rajawali3d.vr.VRActivity;
 
-import java.util.Collections;
 import java.util.EmptyStackException;
-import java.util.List;
-import java.util.Stack;
 
-import ch.epfl.mmspg.testbed360.image.ImageUtils;
+import ch.epfl.mmspg.testbed360.image.ImagesSession;
 import ch.epfl.mmspg.testbed360.image.VRImage;
 import ch.epfl.mmspg.testbed360.tracking.TrackingTask;
 
@@ -44,9 +41,10 @@ import ch.epfl.mmspg.testbed360.tracking.TrackingTask;
  */
 public class VRViewActivity extends VRActivity {
     private final static String TAG = "VRViewActivity";
+    public final static String SESSION_ID_TAG = "sessionId";
+
     private VRViewRenderer mRenderer;
-    private static Stack<VRImage> TRAINING_IMAGES = new Stack<>();
-    private static Stack<VRImage> EVALUATION_IMAGES = new Stack<>();
+    private static ImagesSession SESSION;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,6 +59,16 @@ public class VRViewActivity extends VRActivity {
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
+        int sessionId = getIntent().getIntExtra(SESSION_ID_TAG,-1);
+        if(sessionId == -1){
+            throw new IllegalStateException("No SESSION passed to "+TAG);
+        }
+        SESSION = ImagesSession.getFromId(sessionId);
+
+        if(SESSION == null){
+            throw new IllegalStateException("Session with id "+sessionId+" does not exist");
+        }
+
         mRenderer = new VRViewRenderer(this);
         setRenderer(mRenderer);
     }
@@ -69,21 +77,6 @@ public class VRViewActivity extends VRActivity {
     public void onStart() {
         super.onStart();
         setConvertTapIntoTrigger(true);
-
-        try {
-            //We init the training images here
-            List<VRImage> vrImgs = ImageUtils.distinctShuffle(ImageUtils.loadVRImages(this, VRScene.MODE_TRAINING));
-            Collections.reverse(vrImgs); // we reverse here as it will be inverted in the stack after
-            TRAINING_IMAGES.addAll(vrImgs);
-
-            //And we init the evaluation pictures
-            vrImgs = ImageUtils.distinctShuffle(ImageUtils.loadVRImages(this, VRScene.MODE_EVALUATION));
-            Collections.reverse(vrImgs); // we reverse here as it will be inverted in the stack after
-            EVALUATION_IMAGES.addAll(vrImgs);
-        } catch (IllegalStateException e) {
-            //TODO display a message saying that there is no picture
-            e.printStackTrace();
-        }
     }
 
 
@@ -118,7 +111,7 @@ public class VRViewActivity extends VRActivity {
      */
     @NonNull
     public static VRImage nextTraining() throws EmptyStackException {
-        return TRAINING_IMAGES.pop();
+        return SESSION.nextTraining();
     }
 
     /**
@@ -127,6 +120,10 @@ public class VRViewActivity extends VRActivity {
      */
     @NonNull
     public static VRImage nextEvaluation() throws EmptyStackException {
-        return EVALUATION_IMAGES.pop();
+        return SESSION.nextEvaluation();
+    }
+
+    public static ImagesSession getCurrentSession(){
+        return SESSION;
     }
 }

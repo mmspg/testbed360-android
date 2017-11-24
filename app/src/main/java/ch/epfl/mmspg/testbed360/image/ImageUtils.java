@@ -213,17 +213,14 @@ public final class ImageUtils {
      *                               permission while trying to read an image (see {@link VRImage#VRImage(File)}
      */
     @NonNull
-    public static List<VRImage> loadVRImages(@NonNull Context context, int mode) throws IllegalStateException {
-        File dataDir = context.getExternalFilesDir(null);
+    public static List<VRImage> loadVRImages(@NonNull Context context, @NonNull File sessionDir, int mode) throws IllegalStateException {
         File imgDir;
         switch (mode) {
             case MODE_TRAINING:
-                //TODO implement modular sessions loading
-                imgDir = new File(dataDir, TRAINING_DIR);
+                imgDir = new File(sessionDir, TRAINING_DIR);
                 break;
             case MODE_EVALUATION:
-                //TODO implement modular sessions loading
-                imgDir = new File(dataDir, EVALUATION_DIR);
+                imgDir = new File(sessionDir, EVALUATION_DIR);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown mode to load images: " + mode);

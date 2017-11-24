@@ -212,7 +212,7 @@ public class TrackingTask extends AsyncTask<VRScene, String[], VRImage> {
      */
     @NonNull
     private static File getTrackFile(long trackId, @NonNull Context context) {
-        File trackDir = new File(context.getExternalFilesDir(null), TRACKING_DIR);
+        File trackDir = new File(VRViewActivity.getCurrentSession().getSessionDir(), TRACKING_DIR);
         trackDir.mkdirs();
 
         File trackFile = new File(trackDir, Long.toString(trackId) + "t"); //Getting a file within the dir.
@@ -238,7 +238,7 @@ public class TrackingTask extends AsyncTask<VRScene, String[], VRImage> {
      */
     @NonNull
     private static File getSessionTrackFile(@NonNull Context context) {
-        File trackDir = new File(context.getExternalFilesDir(null), TRACKING_DIR);
+        File trackDir = new File(VRViewActivity.getCurrentSession().getSessionDir(), TRACKING_DIR);
         trackDir.mkdirs();
 
         File trackFile = new File(trackDir, Long.toString(SESSION_TRACK_ID) + "g"); //Getting a file within the dir.

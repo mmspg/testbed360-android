@@ -10,4 +10,6 @@
     <string name="grade_2">Correct</string>
     <string name="grade_3">Good</string>
     <string name="grade_4">Excellent</string>
+    <string name="noSessionExplanation">No session detected ! Please copy your pictures to Android/data/ch.epfl.mmspg.testbed360/files</string>
+    <string name="please_select_session">Click on a session to start it :</string>
 </resources>

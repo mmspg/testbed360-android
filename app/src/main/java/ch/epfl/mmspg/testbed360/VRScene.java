@@ -313,7 +313,8 @@ public class VRScene extends Scene implements VRUI {
                 sphere = null;
             }
         }
-
+        trackingTask = null;
+        vrImage = null;
         menu = null;
         newDotPos = null;
         initDotPos = null;

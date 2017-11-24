@@ -4,20 +4,40 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import ch.epfl.mmspg.testbed360.image.ImagesSession;
 
 public class StartActivity extends AppCompatActivity {
     private final static int FILE_PERMISSION_REQUEST_CODE = 1;
     private final static String TAG = "StartActivity";
 
+    private ProgressBar loadingProgressBar;
+    private TextView loadingProgressText;
+    private TextView noSessionText;
+    private ListView sessionsListView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+
+        loadingProgressBar = (ProgressBar) findViewById(R.id.loadingProgressBar);
+        loadingProgressText = (TextView) findViewById(R.id.loadingProgressText);
+        noSessionText = (TextView) findViewById(R.id.noSessionText);
+        sessionsListView = (ListView) findViewById(R.id.sessionsListView);
     }
 
     @Override
@@ -25,7 +45,8 @@ public class StartActivity extends AppCompatActivity {
         super.onStart();
         //TODO fix crash on my Xiaomi Mi5s on very first start
         if(isStoragePermissionGranted()){
-            startVRActivity();
+            //startVRActivity();
+            seekSessions();
         }
     }
 
@@ -33,6 +54,29 @@ public class StartActivity extends AppCompatActivity {
         startActivity(new Intent(this, VRViewActivity.class));
     }
 
+    private void seekSessions(){
+        loadingProgressBar.setVisibility(View.VISIBLE);
+        loadingProgressText.setVisibility(View.VISIBLE);
+        //TODO add to strings.xml
+        loadingProgressText.setText("Reading filesystem...");
+        noSessionText.setVisibility(View.GONE);
+        sessionsListView.setVisibility(View.GONE);
+
+        ImagesSession.LoadTask task = ImagesSession.getLoadingTask(this);
+        task.execute(this);
+        try {
+            sessionsListView.setAdapter(new ImagesSession.Adapter(this,R.layout.session_list_item, task.get()));
+        } catch (InterruptedException | ExecutionException e) {
+            loadingProgressBar.setVisibility(View.GONE);
+            loadingProgressText.setVisibility(View.GONE);
+            //TODO add to strings.xml
+            noSessionText.setText("There was an error while loading images, please try again later");
+            e.printStackTrace();
+        }
+        sessionsListView.setVisibility(View.VISIBLE);
+        loadingProgressBar.setVisibility(View.GONE);
+        loadingProgressText.setVisibility(View.GONE);
+    }
 
     public boolean isStoragePermissionGranted() {
         //credits to MetaSnarf
