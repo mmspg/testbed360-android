@@ -11,6 +11,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import org.rajawali3d.math.MathUtil;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -362,7 +364,7 @@ public final class ImageUtils {
                         possibleSlugs.remove(selectedSlug);
                         selectedSlug = prevSlug; //as we didn't really select a slug
                     }
-                } else if (possibleSlugs.contains(prevSlug) && possibleSlugs.size() == 1) {
+                } else {
                     /*here we are in the case were the remaining slugs are only of the same type
                     so we pick it anyway next time, breaking the contract but not infinite looping
                     which is a fair trade off. This case is rare when there is a nearly equal amount
@@ -473,7 +475,10 @@ public final class ImageUtils {
         This will never infinite loop as there is at max twice the same slug. */
         boolean distinct = false;
         int shuffleCount = 0;
-        while (!distinct) {
+        //here we check that we do not loop too much. We stop after n! attempts as it is as much as
+        //there exists combinations, hence we have a high probability of being in an impossible situation
+        //TODO change the Math.pow for a factorial (import Apache Commons Arithmetic utils)
+        while (!distinct && shuffleCount < Math.pow(toShuffle.size(),3)) {
             shuffleCount++;
             Collections.shuffle(toShuffle);
             String prev = previousLastingSlug; //the last slug from previous round, given in args here
