@@ -16,7 +16,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.concurrent.ExecutionException;
@@ -54,7 +53,7 @@ public class StartActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         //TODO fix crash on my Xiaomi Mi5s on very first start
-        if(isStoragePermissionGranted()){
+        if (isStoragePermissionGranted()) {
             //startVRActivity();
             seekSessions();
         }
@@ -68,7 +67,7 @@ public class StartActivity extends AppCompatActivity {
      * Starts the task to load sessions in a background thread and changes the UI accordingly.
      * see {@link ch.epfl.mmspg.testbed360.image.ImagesSession.LoadTask#doInBackground(Activity...)}
      */
-    private void seekSessions(){
+    private void seekSessions() {
         swipeRefreshLayout.setRefreshing(true);
         noSessionText.setVisibility(View.GONE);
         sessionsListView.setVisibility(View.GONE);
@@ -77,8 +76,8 @@ public class StartActivity extends AppCompatActivity {
         ImagesSession.LoadTask task = ImagesSession.getLoadingTask(this);
         task.execute(this);
         try {
-            sessionsListView.setAdapter(new ImagesSession.Adapter(this,R.layout.session_list_item, task.get()));
-            if(sessionsListView.getAdapter() != null && sessionsListView.getAdapter().getCount() == 0){
+            sessionsListView.setAdapter(new ImagesSession.Adapter(this, R.layout.session_list_item, task.get()));
+            if (sessionsListView.getAdapter() != null && sessionsListView.getAdapter().getCount() == 0) {
                 noSessionText.setText(R.string.noSessionExplanation);
                 noSessionText.setVisibility(View.VISIBLE);
             }
@@ -90,21 +89,21 @@ public class StartActivity extends AppCompatActivity {
         sessionsListView.setVisibility(View.VISIBLE);
     }
 
-    public void openHelp(MenuItem menuItem){
+    public void openHelp(MenuItem menuItem) {
         //TODO open README.md on GitHub repo
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.toolbar_menu,menu);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.toolbar_menu, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item){
+    public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         //noinspection SimplifiableIfStatement
-        if(id==R.id.menu_help){
+        if (id == R.id.menu_help) {
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -142,8 +141,8 @@ public class StartActivity extends AppCompatActivity {
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, "Permission: " + permissions[0] + " was granted.");
             startVRActivity();
-        } else if(requestCode == FILE_PERMISSION_REQUEST_CODE
-                && grantResults[0] == PackageManager.PERMISSION_DENIED){
+        } else if (requestCode == FILE_PERMISSION_REQUEST_CODE
+                && grantResults[0] == PackageManager.PERMISSION_DENIED) {
             //TODO display a VRButton to enable file access to continue !
         }
     }

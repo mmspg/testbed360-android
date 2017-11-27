@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,11 +27,12 @@ import ch.epfl.mmspg.testbed360.VRScene;
 import ch.epfl.mmspg.testbed360.VRViewActivity;
 import ch.epfl.mmspg.testbed360.tracking.TrackingTask;
 
-/** Represents a batch of {@link VRImage} that are going to be viewed by the user. When the app starts,
+/**
+ * Represents a batch of {@link VRImage} that are going to be viewed by the user. When the app starts,
  * the list of {@link ImagesSession} available is displayed so that the user can pick one.
  * A session of {@link VRImage} is simply built by having a folder with an {@link int} value as name,
  * containing folders {@link #EVALUATION_DIR} and {@link #TRAINING_DIR}.
- *
+ * <p>
  * {@link ImagesSession} should only be loaded using {@link LoadTask}.
  *
  * @author Louis-Maxence Garret <louis-maxence.garret@epfl.ch>
@@ -47,7 +49,7 @@ public class ImagesSession {
     /**
      * Map that allows us to fetch back a session given its id
      */
-    private final static HashMap<Integer, ImagesSession> SESSIONS_MAP = new HashMap<>();
+    private final static SparseArray<ImagesSession> SESSIONS_MAP = new SparseArray<>();
 
     /**
      * Default data folder of the app, corresponds to Android/data/ch.epfl.mmsp.tesbed360/files. This
@@ -63,9 +65,10 @@ public class ImagesSession {
 
     /**
      * Inits an {@link ImagesSession} instance with the given folder and id.
-     * @param id the id of the session, usually parsed from its folder name
+     *
+     * @param id         the id of the session, usually parsed from its folder name
      * @param sessionDir folder containing the session images
-     * @param context {@link Context} used to load files
+     * @param context    {@link Context} used to load files
      */
     private ImagesSession(int id, File sessionDir, Context context) {
         this.sessionDir = sessionDir;
@@ -84,7 +87,7 @@ public class ImagesSession {
 
         sessionTrackCount = computeSessionTrackCount();
 
-        SESSIONS_MAP.put(id,this);
+        SESSIONS_MAP.put(id, this);
     }
 
     /**
@@ -108,18 +111,19 @@ public class ImagesSession {
     /**
      * First attempts to init {@link #DATA_DIR} if it is empty, and then returns a {@link LoadTask}
      * that is used to detect {@link ImagesSession} ready to be used !
+     *
      * @param context the app's {@link Context} to load files from
      * @return a {@link LoadTask} to fetch available {@link ImagesSession} on the current device
      */
-    public static LoadTask getLoadingTask(@NonNull final Context context){
+    public static LoadTask getLoadingTask(@NonNull final Context context) {
         if (DATA_DIR == null) {
             DATA_DIR = context.getExternalFilesDir(null);
             if (DATA_DIR == null) {
                 throw new IllegalStateException("Data dir folder is null");
             }
 
-            if(!DATA_DIR.exists() && !DATA_DIR.mkdirs()){
-                throw new IllegalStateException("Could not create data dir folder : "+ DATA_DIR);
+            if (!DATA_DIR.exists() && !DATA_DIR.mkdirs()) {
+                throw new IllegalStateException("Could not create data dir folder : " + DATA_DIR);
             }
         }
         return new LoadTask();
@@ -138,7 +142,7 @@ public class ImagesSession {
      * Returns null if there is no session associated to this id.
      */
     @Nullable
-    public static ImagesSession getFromId(int sessionId){
+    public static ImagesSession getFromId(int sessionId) {
         return SESSIONS_MAP.get(sessionId);
     }
 
@@ -146,17 +150,17 @@ public class ImagesSession {
         return sessionDir;
     }
 
-    private int computeSessionTrackCount(){
-        if(sessionDir == null || !sessionDir.exists()){
-            throw new IllegalStateException("Session dir does not exist : "+sessionDir);
+    private int computeSessionTrackCount() {
+        if (sessionDir == null || !sessionDir.exists()) {
+            throw new IllegalStateException("Session dir does not exist : " + sessionDir);
         }
         File[] trackFiles = new File(sessionDir, TrackingTask.TRACKING_DIR).listFiles();
-        if(trackFiles == null || trackFiles.length == 0){
+        if (trackFiles == null || trackFiles.length == 0) {
             return 0;
         }
         int count = 0;
-        for(File f : trackFiles){
-            if(f.getName().matches("\\d+g")){
+        for (File f : trackFiles) {
+            if (f.getName().matches("\\d+g")) {
                 count++;
             }
         }
@@ -178,22 +182,22 @@ public class ImagesSession {
 
         @Override
         protected List<ImagesSession> doInBackground(@NonNull Activity... activities) {
-            if(activities[0] == null){
+            if (activities[0] == null) {
                 throw new IllegalArgumentException("Context was null");
             }
             SESSIONS_MAP.clear();
             File[] files = DATA_DIR.listFiles();
             List<ImagesSession> sessions = new ArrayList<>();
-            if(files == null || files.length == 0 ){
+            if (files == null || files.length == 0) {
                 return sessions;
             }
 
-            for(File f : files){
-                if(f.isDirectory()){
+            for (File f : files) {
+                if (f.isDirectory()) {
                     try {
                         int id = Integer.parseInt(f.getName());
-                        sessions.add(new ImagesSession(id,f,activities[0]));
-                    }catch (NumberFormatException ignored){
+                        sessions.add(new ImagesSession(id, f, activities[0]));
+                    } catch (NumberFormatException ignored) {
                         //this folder is not named as wanted !
                     }
                 }
@@ -233,9 +237,14 @@ public class ImagesSession {
 
             final ImagesSession session = getItem(position);
             if (session != null) {
-                viewHolder.titleView.setText("Session n°" + session.getId());
-                //TODO show number of images and tracks done for a given session
-                viewHolder.descriptionView.setText(session.getSessionTrackCount()+" session(s) done.");
+                viewHolder.titleView.setText(
+                        getContext().getString(R.string.session_number,session.getId())
+                );
+                viewHolder.descriptionView.setText(getContext().getResources().getQuantityString(
+                        R.plurals.sessions_count,
+                        session.getSessionTrackCount(),//as quantity
+                        session.getSessionTrackCount()//as %1$d placeholder for the string
+                ));
                 viewHolder.layout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -250,19 +259,19 @@ public class ImagesSession {
         }
 
         @Override
-        public int getCount(){
+        public int getCount() {
             return sessions.size();
         }
 
         @Override
-        public ImagesSession getItem(int position){
+        public ImagesSession getItem(int position) {
             return sessions.get(position);
         }
 
         /**
          * Quick class to be used in {@link Adapter#getView(int, View, ViewGroup)}
          */
-        static class ViewHolder{
+        static class ViewHolder {
             private TextView titleView;
             private TextView descriptionView;
             private LinearLayout layout;

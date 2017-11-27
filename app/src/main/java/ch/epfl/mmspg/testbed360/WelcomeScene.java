@@ -40,7 +40,7 @@ public final class WelcomeScene extends VRScene {
     }
 
     @Override
-    protected void initMenu(final Renderer renderer) {
+    protected void initMenu(@NonNull final Renderer renderer) {
         menu = VRMenuFactory.buildWelcomeMenu(renderer);
         menu.setVisible(true);
         addChild(menu);

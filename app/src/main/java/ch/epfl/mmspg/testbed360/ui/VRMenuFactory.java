@@ -10,6 +10,7 @@ import org.rajawali3d.util.OnFPSUpdateListener;
 import java.util.EmptyStackException;
 import java.util.concurrent.Callable;
 
+import ch.epfl.mmspg.testbed360.R;
 import ch.epfl.mmspg.testbed360.VRScene;
 import ch.epfl.mmspg.testbed360.VRViewActivity;
 import ch.epfl.mmspg.testbed360.image.ImageGrade;
@@ -26,6 +27,7 @@ import ch.epfl.mmspg.testbed360.image.VRImage;
 public final class VRMenuFactory {
     private final static float STANDARD_BUTTON_WIDTH = 10f;
     private final static float STANDARD_BUTTON_HEIGHT = 2f;
+
     //TODO remove or set false this in production, only for debugging
     private final static boolean RENDER_FPS = false;
 
@@ -53,7 +55,7 @@ public final class VRMenuFactory {
             }
 
             final VRButton startButton = new VRButton(renderer.getContext(),
-                    "Start training!", //TODO put text in strings.xml
+                    renderer.getContext().getString(R.string.start_training),
                     STANDARD_BUTTON_WIDTH,
                     STANDARD_BUTTON_HEIGHT);
             startButton.setName("StartButton");
@@ -65,14 +67,14 @@ public final class VRMenuFactory {
                         ((VRScene) renderer.getCurrentScene()).recycle();
                         renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_TRAINING));
                     } catch (EmptyStackException e) {
-                        startButton.setText("No new image"); //TODO put text in strings.xml
+                        startButton.setText(renderer.getContext().getString(R.string.no_new_image));
                     }
                     return null;
                 }
             });
 
             final VRButton skipTrainingButton = new VRButton(renderer.getContext(),
-                    "Skip training", //TODO put text in strings.xml
+                    renderer.getContext().getString(R.string.skip_training),
                     STANDARD_BUTTON_WIDTH,
                     STANDARD_BUTTON_HEIGHT);
             skipTrainingButton.setName("skipTrainingButton");
@@ -84,7 +86,7 @@ public final class VRMenuFactory {
                         ((VRScene) renderer.getCurrentScene()).recycle();
                         renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_EVALUATION));
                     } catch (EmptyStackException e) {
-                        startButton.setText("No new image"); //TODO put text in strings.xml
+                        startButton.setText(renderer.getContext().getString(R.string.no_new_image));
                     }
                     return null;
                 }
@@ -211,7 +213,7 @@ public final class VRMenuFactory {
                                 ((VRScene) renderer.getCurrentScene()).recycle();
                                 renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_EVALUATION));
                             } catch (EmptyStackException e) {
-                                button.setText("No new image"); //TODO put text in strings.xml
+                                button.setText(renderer.getContext().getString(R.string.no_new_image));
                             }
                             return null;
                         }
