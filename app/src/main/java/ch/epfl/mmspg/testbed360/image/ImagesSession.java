@@ -10,7 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ProgressBar;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.io.File;
@@ -25,17 +25,33 @@ import ch.epfl.mmspg.testbed360.R;
 import ch.epfl.mmspg.testbed360.VRScene;
 import ch.epfl.mmspg.testbed360.VRViewActivity;
 
-/**
+/** Represents a batch of {@link VRImage} that are going to be viewed by the user. When the app starts,
+ * the list of {@link ImagesSession} available is displayed so that the user can pick one.
+ * A session of {@link VRImage} is simply built by having a folder with an {@link int} value as name,
+ * containing folders {@link #EVALUATION_DIR} and {@link #TRAINING_DIR}.
+ *
+ * {@link ImagesSession} should only be loaded using {@link LoadTask}.
+ *
  * @author Louis-Maxence Garret <louis-maxence.garret@epfl.ch>
  * @date 24/11/2017
  */
 
 public class ImagesSession {
     private final static String TAG = "ImagesSession";
-    private final static String EVALUATION_DIR = "evaluation";
-    private final static String TRAINING_DIR = "training";
 
+
+    final static String EVALUATION_DIR = "evaluation";
+    final static String TRAINING_DIR = "training";
+
+    /**
+     * Map that allows us to fetch back a session given its id
+     */
     private final static HashMap<Integer, ImagesSession> SESSIONS_MAP = new HashMap<>();
+
+    /**
+     * Default data folder of the app, corresponds to Android/data/ch.epfl.mmsp.tesbed360/files. This
+     * is where session files must be put.
+     */
     private static File DATA_DIR;
 
     private int id;
@@ -115,8 +131,8 @@ public class ImagesSession {
             File[] files = DATA_DIR.listFiles();
             List<ImagesSession> sessions = new ArrayList<>();
             if(files == null || files.length == 0 ){
-                ((TextView)activities[0].findViewById(R.id.noSessionText)).setVisibility(View.VISIBLE);
-                hideLoadingBar(activities[0]);
+                activities[0].findViewById(R.id.noSessionText).setVisibility(View.VISIBLE);
+                activities[0].findViewById(R.id.loadingProgressText).setVisibility(View.GONE);
                 return sessions;
             }
 
@@ -133,16 +149,11 @@ public class ImagesSession {
                 }
             }
             if(sessions.isEmpty()){
-                ((TextView)activities[0].findViewById(R.id.noSessionText)).setVisibility(View.VISIBLE);
+                activities[0].findViewById(R.id.noSessionText).setVisibility(View.VISIBLE);
             }
-            hideLoadingBar(activities[0]);
+            activities[0].findViewById(R.id.loadingProgressText).setVisibility(View.GONE);
 
             return sessions;
-        }
-
-        private void hideLoadingBar(@NonNull Activity activity){
-            activity.findViewById(R.id.loadingProgressText).setVisibility(View.GONE);
-            activity.findViewById(R.id.loadingProgressBar).setVisibility(View.GONE);
         }
     }
 
@@ -159,20 +170,25 @@ public class ImagesSession {
         @NonNull
         @Override
         public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-            final TextView textView;
+            final ViewHolder viewHolder;
 
             if (convertView == null) {
                 convertView = layoutInflater.inflate(R.layout.session_list_item, null);
-                textView = (TextView) convertView.findViewById(R.id.session_item_text);
-                convertView.setTag(textView);
+                viewHolder = new ViewHolder();
+                viewHolder.titleView = (TextView) convertView.findViewById(R.id.session_item_title);
+                viewHolder.descriptionView = (TextView) convertView.findViewById(R.id.session_item_description);
+                viewHolder.layout = (LinearLayout) convertView.findViewById(R.id.session_item_layout);
+                convertView.setTag(viewHolder);
             } else {
-                textView = (TextView) convertView.getTag();
+                viewHolder = (ViewHolder) convertView.getTag();
             }
 
             final ImagesSession session = getItem(position);
             if (session != null) {
-                textView.setText("Session n°" + session.getId());
-                textView.setOnClickListener(new View.OnClickListener() {
+                viewHolder.titleView.setText("Session n°" + session.getId());
+                //TODO show number of images and tracks done for a given session
+                viewHolder.descriptionView.setText("This is a description");
+                viewHolder.layout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(getContext(), VRViewActivity.class);
@@ -193,6 +209,12 @@ public class ImagesSession {
         @Override
         public ImagesSession getItem(int position){
             return sessions.get(position);
+        }
+
+        static class ViewHolder{
+            private TextView titleView;
+            private TextView descriptionView;
+            private LinearLayout layout;
         }
     }
 }

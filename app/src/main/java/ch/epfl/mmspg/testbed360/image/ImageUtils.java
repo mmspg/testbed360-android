@@ -36,9 +36,6 @@ import static ch.epfl.mmspg.testbed360.VRScene.MODE_TRAINING;
 public final class ImageUtils {
     private final static String TAG = "ImageUtils";
 
-    private final static String EVALUATION_DIR = "evaluation";
-    private final static String TRAINING_DIR = "training";
-
     private static Bitmap[] cubeBitmaps = new Bitmap[6];
     private static Bitmap[] sphereBitmap = new Bitmap[1];
 
@@ -191,7 +188,7 @@ public final class ImageUtils {
      */
     @Nullable
     public static Bitmap rotateBitmap(@Nullable Bitmap bitmap, float angle) {
-        if(bitmap == null){
+        if (bitmap == null) {
             return null;
         }
         Matrix matrix = new Matrix();
@@ -217,10 +214,10 @@ public final class ImageUtils {
         File imgDir;
         switch (mode) {
             case MODE_TRAINING:
-                imgDir = new File(sessionDir, TRAINING_DIR);
+                imgDir = new File(sessionDir, "stimuli" + File.separator + ImagesSession.TRAINING_DIR);
                 break;
             case MODE_EVALUATION:
-                imgDir = new File(sessionDir, EVALUATION_DIR);
+                imgDir = new File(sessionDir, "stimuli" + File.separator + ImagesSession.EVALUATION_DIR);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown mode to load images: " + mode);
@@ -501,7 +498,7 @@ public final class ImageUtils {
      */
     @NonNull
     public static Bitmap[] loadSphereBitmap(@Nullable VRImage image) {
-        if(image == null){
+        if (image == null) {
             return new Bitmap[6];
         }
         BitmapFactory.Options opt = new BitmapFactory.Options();
