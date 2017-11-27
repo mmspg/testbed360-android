@@ -11,6 +11,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import org.apache.commons.math3.util.ArithmeticUtils;
 import org.rajawali3d.math.MathUtil;
 
 import java.io.File;
@@ -477,8 +478,7 @@ public final class ImageUtils {
         int shuffleCount = 0;
         //here we check that we do not loop too much. We stop after n! attempts as it is as much as
         //there exists combinations, hence we have a high probability of being in an impossible situation
-        //TODO change the Math.pow for a factorial (import Apache Commons Arithmetic utils)
-        while (!distinct && shuffleCount < Math.pow(toShuffle.size(),3)) {
+        while (!distinct && shuffleCount < ArithmeticUtils.factorial(toShuffle.size())) {
             shuffleCount++;
             Collections.shuffle(toShuffle);
             String prev = previousLastingSlug; //the last slug from previous round, given in args here
