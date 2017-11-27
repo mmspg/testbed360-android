@@ -36,7 +36,7 @@ public class TrackingTask extends AsyncTask<VRScene, String[], VRImage> {
     /**
      * Directory name where we will store log files
      */
-    private final static String TRACKING_DIR = "tracking";
+    public final static String TRACKING_DIR = "tracking";
 
     /**
      * ID of the current session of tracking, i.e. the exact time the user started the {@link VRScene#MODE_EVALUATION}

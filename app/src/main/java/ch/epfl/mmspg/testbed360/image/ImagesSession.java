@@ -24,6 +24,7 @@ import java.util.Stack;
 import ch.epfl.mmspg.testbed360.R;
 import ch.epfl.mmspg.testbed360.VRScene;
 import ch.epfl.mmspg.testbed360.VRViewActivity;
+import ch.epfl.mmspg.testbed360.tracking.TrackingTask;
 
 /** Represents a batch of {@link VRImage} that are going to be viewed by the user. When the app starts,
  * the list of {@link ImagesSession} available is displayed so that the user can pick one.
@@ -58,7 +59,14 @@ public class ImagesSession {
     private Stack<VRImage> evaluationImages = new Stack<>();
     private Stack<VRImage> trainingImages = new Stack<>();
     private File sessionDir;
+    private int sessionTrackCount;
 
+    /**
+     * Inits an {@link ImagesSession} instance with the given folder and id.
+     * @param id the id of the session, usually parsed from its folder name
+     * @param sessionDir folder containing the session images
+     * @param context {@link Context} used to load files
+     */
     private ImagesSession(int id, File sessionDir, Context context) {
         this.sessionDir = sessionDir;
         //We init the training images here
@@ -73,6 +81,8 @@ public class ImagesSession {
         evaluationImages.addAll(vrImgs);
 
         vrImgs.clear();
+
+        sessionTrackCount = computeSessionTrackCount();
 
         SESSIONS_MAP.put(id,this);
     }
@@ -95,6 +105,12 @@ public class ImagesSession {
         return evaluationImages.pop();
     }
 
+    /**
+     * First attempts to init {@link #DATA_DIR} if it is empty, and then returns a {@link LoadTask}
+     * that is used to detect {@link ImagesSession} ready to be used !
+     * @param context the app's {@link Context} to load files from
+     * @return a {@link LoadTask} to fetch available {@link ImagesSession} on the current device
+     */
     public static LoadTask getLoadingTask(@NonNull final Context context){
         if (DATA_DIR == null) {
             DATA_DIR = context.getExternalFilesDir(null);
@@ -109,10 +125,18 @@ public class ImagesSession {
         return new LoadTask();
     }
 
+    /**
+     * @return the id of the session, its folder name (must be an int parseable string).
+     */
     public int getId() {
         return id;
     }
 
+    /**
+     * @param sessionId the id of the session we're interested in
+     * @return the {@link ImagesSession} with {@link #id} {@param sessionId}, stored in the {@link #SESSIONS_MAP}.
+     * Returns null if there is no session associated to this id.
+     */
     @Nullable
     public static ImagesSession getFromId(int sessionId){
         return SESSIONS_MAP.get(sessionId);
@@ -122,6 +146,34 @@ public class ImagesSession {
         return sessionDir;
     }
 
+    private int computeSessionTrackCount(){
+        if(sessionDir == null || !sessionDir.exists()){
+            throw new IllegalStateException("Session dir does not exist : "+sessionDir);
+        }
+        File[] trackFiles = new File(sessionDir, TrackingTask.TRACKING_DIR).listFiles();
+        if(trackFiles == null || trackFiles.length == 0){
+            return 0;
+        }
+        int count = 0;
+        for(File f : trackFiles){
+            if(f.getName().matches("\\d+g")){
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * @return Gets the count of already done tracking on this {@link ImagesSession}
+     */
+    public int getSessionTrackCount() {
+        return sessionTrackCount;
+    }
+
+    /**
+     * This class is to be used to seek existing {@link ImagesSession} on the device, all in a
+     * background task.
+     */
     public static class LoadTask extends AsyncTask<Activity, Void, List<ImagesSession>> {
 
         @Override
@@ -129,6 +181,7 @@ public class ImagesSession {
             if(activities[0] == null){
                 throw new IllegalArgumentException("Context was null");
             }
+            SESSIONS_MAP.clear();
             File[] files = DATA_DIR.listFiles();
             List<ImagesSession> sessions = new ArrayList<>();
             if(files == null || files.length == 0 ){
@@ -158,6 +211,9 @@ public class ImagesSession {
         }
     }
 
+    /**
+     * Class used to represent an {@link ImagesSession} in the {@link ch.epfl.mmspg.testbed360.StartActivity}.
+     */
     public static class Adapter extends ArrayAdapter<ImagesSession> {
         private final List<ImagesSession> sessions;
         private final LayoutInflater layoutInflater;
@@ -188,7 +244,7 @@ public class ImagesSession {
             if (session != null) {
                 viewHolder.titleView.setText("Session n°" + session.getId());
                 //TODO show number of images and tracks done for a given session
-                viewHolder.descriptionView.setText("This is a description");
+                viewHolder.descriptionView.setText(session.getSessionTrackCount()+" session(s) done.");
                 viewHolder.layout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -212,6 +268,9 @@ public class ImagesSession {
             return sessions.get(position);
         }
 
+        /**
+         * Quick class to be used in {@link Adapter#getView(int, View, ViewGroup)}
+         */
         static class ViewHolder{
             private TextView titleView;
             private TextView descriptionView;
