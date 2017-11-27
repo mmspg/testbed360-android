@@ -13,4 +13,5 @@
     <string name="noSessionExplanation">No session detected ! Please copy your pictures to Android/data/ch.epfl.mmspg.testbed360/files</string>
     <string name="please_select_session">Click on a session to start it :</string>
     <string name="error_loading_images">There was an error while loading images, please try again later</string>
+    <string name="help">Help</string>
 </resources>

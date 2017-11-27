@@ -1,6 +1,7 @@
 package ch.epfl.mmspg.testbed360;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -11,6 +12,8 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -61,6 +64,10 @@ public class StartActivity extends AppCompatActivity {
         startActivity(new Intent(this, VRViewActivity.class));
     }
 
+    /**
+     * Starts the task to load sessions in a background thread and changes the UI accordingly.
+     * see {@link ch.epfl.mmspg.testbed360.image.ImagesSession.LoadTask#doInBackground(Activity...)}
+     */
     private void seekSessions(){
         swipeRefreshLayout.setRefreshing(true);
         noSessionText.setVisibility(View.GONE);
@@ -81,6 +88,26 @@ public class StartActivity extends AppCompatActivity {
         }
         swipeRefreshLayout.setRefreshing(false);
         sessionsListView.setVisibility(View.VISIBLE);
+    }
+
+    public void openHelp(MenuItem menuItem){
+        //TODO open README.md on GitHub repo
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.toolbar_menu,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        int id = item.getItemId();
+        //noinspection SimplifiableIfStatement
+        if(id==R.id.menu_help){
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     public boolean isStoragePermissionGranted() {
