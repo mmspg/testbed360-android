@@ -60,6 +60,7 @@ public class ImagesSession {
     private File sessionDir;
 
     private ImagesSession(int id, File sessionDir, Context context) {
+        this.sessionDir = sessionDir;
         //We init the training images here
         this.id = id;
         List<VRImage> vrImgs = ImageUtils.distinctShuffle(ImageUtils.loadVRImages(context, sessionDir, VRScene.MODE_TRAINING));
