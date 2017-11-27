@@ -185,8 +185,6 @@ public class ImagesSession {
             File[] files = DATA_DIR.listFiles();
             List<ImagesSession> sessions = new ArrayList<>();
             if(files == null || files.length == 0 ){
-                activities[0].findViewById(R.id.noSessionText).setVisibility(View.VISIBLE);
-                activities[0].findViewById(R.id.loadingProgressText).setVisibility(View.GONE);
                 return sessions;
             }
 
@@ -194,19 +192,12 @@ public class ImagesSession {
                 if(f.isDirectory()){
                     try {
                         int id = Integer.parseInt(f.getName());
-                        //TODO add to strings.xml
-                        ((TextView)activities[0].findViewById(R.id.loadingProgressText)).setText("Randomizing session "+ id);
                         sessions.add(new ImagesSession(id,f,activities[0]));
                     }catch (NumberFormatException ignored){
                         //this folder is not named as wanted !
                     }
                 }
             }
-            if(sessions.isEmpty()){
-                activities[0].findViewById(R.id.noSessionText).setVisibility(View.VISIBLE);
-            }
-            activities[0].findViewById(R.id.loadingProgressText).setVisibility(View.GONE);
-
             return sessions;
         }
     }

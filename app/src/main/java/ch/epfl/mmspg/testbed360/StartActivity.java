@@ -25,7 +25,6 @@ public class StartActivity extends AppCompatActivity {
     private final static String TAG = "StartActivity";
 
     private SwipeRefreshLayout swipeRefreshLayout;
-    private TextView loadingProgressText;
     private TextView noSessionText;
     private ListView sessionsListView;
 
@@ -37,7 +36,6 @@ public class StartActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
 
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.session_swipe_refresh);
-        loadingProgressText = (TextView) findViewById(R.id.loadingProgressText);
         noSessionText = (TextView) findViewById(R.id.noSessionText);
         sessionsListView = (ListView) findViewById(R.id.sessionsListView);
 
@@ -65,9 +63,6 @@ public class StartActivity extends AppCompatActivity {
 
     private void seekSessions(){
         swipeRefreshLayout.setRefreshing(true);
-        loadingProgressText.setVisibility(View.VISIBLE);
-        //TODO add to strings.xml
-        loadingProgressText.setText("Reading filesystem...");
         noSessionText.setVisibility(View.GONE);
         sessionsListView.setVisibility(View.GONE);
         sessionsListView.setAdapter(null);
@@ -76,15 +71,16 @@ public class StartActivity extends AppCompatActivity {
         task.execute(this);
         try {
             sessionsListView.setAdapter(new ImagesSession.Adapter(this,R.layout.session_list_item, task.get()));
+            if(sessionsListView.getAdapter() != null && sessionsListView.getAdapter().getCount() == 0){
+                noSessionText.setText(R.string.noSessionExplanation);
+                noSessionText.setVisibility(View.VISIBLE);
+            }
         } catch (InterruptedException | ExecutionException e) {
-            loadingProgressText.setVisibility(View.GONE);
-            //TODO add to strings.xml
-            noSessionText.setText("There was an error while loading images, please try again later");
+            noSessionText.setText(R.string.error_loading_images);
             e.printStackTrace();
         }
         swipeRefreshLayout.setRefreshing(false);
         sessionsListView.setVisibility(View.VISIBLE);
-        loadingProgressText.setVisibility(View.GONE);
     }
 
     public boolean isStoragePermissionGranted() {
