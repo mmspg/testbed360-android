@@ -35,4 +35,5 @@ dependencies {
     compile 'org.rajawali3d:vr:1.1.970'
     compile 'com.opencsv:opencsv:4.1'
     compile 'org.apache.commons:commons-math3:3.2'
+    compile 'com.github.tiagohm.MarkdownView:library:0.17.0'
 }

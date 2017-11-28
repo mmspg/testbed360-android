@@ -1,65 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/AppTheme"
-    tools:context="ch.epfl.mmspg.testbed360.StartActivity">
+    tools:context="ch.epfl.mmspg.testbed360.StartActivity"
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/noSessionText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:padding="?attr/dialogPreferredPadding"
-        android:text="@string/noSessionExplanation"
-        android:textAlignment="center"
-        android:visibility="gone" />
-
-    <LinearLayout
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/start_activity_toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/AppTheme"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:title="@string/app_name" />
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/start_activity_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:elevation="4dp"
-            android:theme="@style/AppTheme"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:title="@string/app_name" />
+    <FrameLayout
+        android:id="@+id/fragment_holder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/session_swipe_refresh"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+    </FrameLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/select_session_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/padding_activity_layout"
-                    android:text="@string/please_select_session" />
-
-                <ListView
-                    android:id="@+id/sessionsListView"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:theme="@style/AppTheme">
-
-                </ListView>
-            </LinearLayout>
-        </android.support.v4.widget.SwipeRefreshLayout>
-
-    </LinearLayout>
-
-</FrameLayout>
+</LinearLayout>

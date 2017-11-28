@@ -18,6 +18,7 @@ allprojects {
         jcenter()
         mavenLocal()
         google()
+        maven { url 'https://jitpack.io' }
     }
 }
 
