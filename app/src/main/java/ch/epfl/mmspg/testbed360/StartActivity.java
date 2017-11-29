@@ -3,16 +3,11 @@ package ch.epfl.mmspg.testbed360;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -23,6 +18,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -33,72 +30,147 @@ import br.tiagohm.markdownview.css.InternalStyleSheet;
 import br.tiagohm.markdownview.css.styles.Github;
 import ch.epfl.mmspg.testbed360.image.ImagesSession;
 
+/**
+ * This is the very first activity displayed, which prompts choices of {@link ImagesSession} to launch
+ * within the {@link SessionsListFragment}, and gives you to see some explanations with the
+ * {@link HelpFragment}. Will display a {@link PermissionRequestFragment} if the user has denied the
+ * app to access the filesystem !
+ */
 public class StartActivity extends AppCompatActivity {
-    private final static int FILE_PERMISSION_REQUEST_CODE = 1;
+    private final static int FILE_PERMISSION_REQUEST_CODE = 3;
     private final static String TAG = "StartActivity";
 
     private SessionsListFragment sessionsListFragment;
     private HelpFragment helpFragment;
+    private PermissionRequestFragment permissionRequestFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+
         Toolbar myToolbar = (Toolbar) findViewById(R.id.start_activity_toolbar);
         setSupportActionBar(myToolbar);
 
         helpFragment = new HelpFragment();
         sessionsListFragment = new SessionsListFragment();
+        permissionRequestFragment = new PermissionRequestFragment();
+
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.add(R.id.fragment_holder, sessionsListFragment);
         fragmentTransaction.add(R.id.fragment_holder, helpFragment);
-        fragmentTransaction.commit();
+        fragmentTransaction.add(R.id.fragment_holder, permissionRequestFragment);
+        fragmentTransaction.commitNow();
 
         showSessionsListFragment();
     }
 
-    private void showSessionsListFragment(){
+    /**
+     * Checks if the app has the correct permissions to read an write to Android's filesystem, and
+     * sets the {@link #sessionsListFragment} to the foreground if it's the case, or the
+     * {@link #permissionRequestFragment}
+     * <p>
+     * see {@link #isStoragePermissionGranted()}
+     */
+    private void showSessionsListFragment() {
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.hide(helpFragment);
-        fragmentTransaction.show(sessionsListFragment);
-        fragmentTransaction.commit();
+        if (isStoragePermissionGranted()) {
+            fragmentTransaction.hide(permissionRequestFragment);
+            fragmentTransaction.hide(helpFragment);
+            fragmentTransaction.show(sessionsListFragment);
+        } else {
+            fragmentTransaction.hide(helpFragment);
+            fragmentTransaction.hide(sessionsListFragment);
+            fragmentTransaction.show(permissionRequestFragment);
+        }
+        fragmentTransaction.commitNowAllowingStateLoss();
     }
 
-    private void showHelpFragment(){
+    /**
+     * Sets the {@link #sessionsListFragment} to the foreground, hiding all other fragments
+     */
+    private void showHelpFragment() {
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.hide(sessionsListFragment);
+        fragmentTransaction.hide(permissionRequestFragment);
         fragmentTransaction.show(helpFragment);
-        fragmentTransaction.commit();
-
+        fragmentTransaction.commitNowAllowingStateLoss();
     }
 
     @Override
     public void onBackPressed() {
-        if(helpFragment.isVisible()){
+        if (helpFragment.isVisible()) {
+            //hide the help, and shows the sessions
             showSessionsListFragment();
-        }else{
+        } else {
+            //quit the app as for any app
             super.onBackPressed();
         }
     }
 
-    private void startVRActivity() {
-        startActivity(new Intent(this, VRViewActivity.class));
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        //TODO fix onResume when user has changed permissions, both permission and sessionList fragments displayed !
+        if (!helpFragment.isVisible()) {
+            showSessionsListFragment();
+        }
     }
 
-    public void openHelp(MenuItem menuItem) {
-        if(helpFragment.isVisible()){
+    /**
+     * see {@link #toggleHelp()}
+     */
+    public void toggleHelp(MenuItem menuItem) {
+        toggleHelp();
+    }
+
+    /**
+     * see {@link #toggleHelp()}
+     */
+    public void toggleHelp(View v) {
+        toggleHelp();
+    }
+
+    /**
+     * Toggles the {@link #helpFragment}. Called by the help button in the action bar or the
+     * "Need help?" button in {@link SessionsListFragment}.
+     */
+    public void toggleHelp() {
+        if (helpFragment.isVisible()) {
             showSessionsListFragment();
-        }else{
+        } else {
             showHelpFragment();
         }
     }
 
+    @SuppressLint("NewApi")
+    public void requestPermissions(View v) {
+        Log.d(TAG, "Permission is revoked (API>23)");
+
+        if (isStoragePermissionGranted()) {
+            showSessionsListFragment();
+        } else {
+            //here we are sure we are in API more than 23, no need to check again
+            requestPermissions(new String[]{
+                            Manifest.permission.READ_EXTERNAL_STORAGE,
+                            android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    FILE_PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.toolbar_menu, menu);
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -109,29 +181,9 @@ public class StartActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public static boolean isStoragePermissionGranted(Activity activity) {
-        //credits to MetaSnarf
-        // https://stackoverflow.com/questions/33162152/storage-permission-error-in-marshmallow
-
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (activity.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "Permission is granted (API>23)");
-                return true;
-            } else {
-
-                Log.d(TAG, "Permission is revoked (API>23)");
-                ActivityCompat.requestPermissions(activity,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                        FILE_PERMISSION_REQUEST_CODE);
-                return false;
-            }
-        } else { //permission is automatically granted on sdk<23 upon installation
-            Log.d(TAG, "Permission is granted (API<23)");
-            return true;
-        }
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
@@ -140,17 +192,54 @@ public class StartActivity extends AppCompatActivity {
         if (requestCode == FILE_PERMISSION_REQUEST_CODE
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, "Permission: " + permissions[0] + " was granted.");
-            startVRActivity();
+            showSessionsListFragment();
         } else if (requestCode == FILE_PERMISSION_REQUEST_CODE
                 && grantResults[0] == PackageManager.PERMISSION_DENIED) {
-            //TODO display a VRButton to enable file access to continue !
+            Log.d(TAG, "Permission: " + permissions[0] + " was not granted. Need to ask again");
+            //do nothing here, the RequestPermissionFragment is still shown
         }
     }
 
+    /**
+     * Checks if the app has the {@link android.Manifest.permission#WRITE_EXTERNAL_STORAGE} and
+     * {@link android.Manifest.permission#READ_EXTERNAL_STORAGE} set to true. If the Android device
+     * is of API < 23, this automatically granted, so when this return false we know that the device
+     * is of API >=23.
+     *
+     * @return true if the user has given the app read and write to external storage permissions (or
+     * device API < 23), false otherwise.
+     */
+    public boolean isStoragePermissionGranted() {
+        //credits to MetaSnarf
+        // https://stackoverflow.com/questions/33162152/storage-permission-error-in-marshmallow
+
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED
+                    && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "Permission is granted (API>23)");
+                return true;
+            } else {
+                Log.d(TAG, "Permission is not granted ! Should reques it(API>23)");
+                return false;
+            }
+        } else { //permission is automatically granted on sdk<23 upon installation
+            Log.d(TAG, "Permission is granted (API<23)");
+            return true;
+        }
+    }
+
+    /**
+     * Fragment used to display the different detected {@link ImagesSession} on the Android device,
+     * or a small message if there is none.
+     */
     public static class SessionsListFragment extends Fragment {
         private SwipeRefreshLayout swipeRefreshLayout;
         private TextView noSessionText;
+        private LinearLayout noSessionLayout;
         private ListView sessionsListView;
+        private LinearLayout sessionsListLayout;
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -159,7 +248,9 @@ public class StartActivity extends AppCompatActivity {
             View v = inflater.inflate(R.layout.sessions_list_fragment, container, false);
             swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.session_swipe_refresh);
             noSessionText = (TextView) v.findViewById(R.id.noSessionText);
+            noSessionLayout = (LinearLayout) v.findViewById(R.id.noSessionLayout);
             sessionsListView = (ListView) v.findViewById(R.id.sessionsListView);
+            sessionsListLayout = (LinearLayout) v.findViewById(R.id.sessionListLayout);
 
             swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                 @Override
@@ -171,14 +262,20 @@ public class StartActivity extends AppCompatActivity {
             return v;
         }
 
+        @Override
+        public void onStart() {
+            super.onStart();
+            seekSessions();
+        }
+
         /**
          * Starts the task to load sessions in a background thread and changes the UI accordingly.
          * see {@link ch.epfl.mmspg.testbed360.image.ImagesSession.LoadTask#doInBackground(Activity...)}
          */
         private void seekSessions() {
             swipeRefreshLayout.setRefreshing(true);
-            noSessionText.setVisibility(View.GONE);
-            sessionsListView.setVisibility(View.GONE);
+            noSessionLayout.setVisibility(View.GONE);
+            sessionsListLayout.setVisibility(View.GONE);
             sessionsListView.setAdapter(null);
 
             ImagesSession.LoadTask task = ImagesSession.getLoadingTask(getContext());
@@ -187,27 +284,23 @@ public class StartActivity extends AppCompatActivity {
                 sessionsListView.setAdapter(new ImagesSession.Adapter(getContext(), R.layout.session_list_item, task.get()));
                 if (sessionsListView.getAdapter() != null && sessionsListView.getAdapter().getCount() == 0) {
                     noSessionText.setText(R.string.noSessionExplanation);
-                    noSessionText.setVisibility(View.VISIBLE);
+                    noSessionLayout.setVisibility(View.VISIBLE);
+                } else {
+                    sessionsListLayout.setVisibility(View.VISIBLE);
                 }
             } catch (InterruptedException | ExecutionException e) {
+                noSessionLayout.setVisibility(View.VISIBLE);
                 noSessionText.setText(R.string.error_loading_images);
                 e.printStackTrace();
             }
             swipeRefreshLayout.setRefreshing(false);
-            sessionsListView.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        public void onStart() {
-            super.onStart();
-            //TODO fix crash on my Xiaomi Mi5s on very first start
-            if (isStoragePermissionGranted(getActivity())) {
-                //startVRActivity();
-                seekSessions();
-            }
         }
     }
 
+    /**
+     * {@link Fragment} displaying some help written in MarkDown format. Could be loaded directly from
+     * the GitHub repo when public.
+     */
     public static class HelpFragment extends Fragment {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -225,7 +318,7 @@ public class StartActivity extends AppCompatActivity {
                     "font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif",
                     "font-size: 14px", "line-height: 1.42857143",
                     "color: rgba(255, 255, 255, 0.75)",
-                    "background-color: #"+Integer.toHexString(getResources().getColor(R.color.bg_dark)).substring(2),
+                    "background-color: #" + Integer.toHexString(getResources().getColor(R.color.bg_dark)).substring(2),
                     "margin: 0"
             );
             /*css.addRule("code",
@@ -237,6 +330,20 @@ public class StartActivity extends AppCompatActivity {
             //css.addRule("code", "max-width: 100%");
             mdView.addStyleSheet(css);
             mdView.loadMarkdownFromAsset("How to add pictures.md");
+        }
+    }
+
+    /**
+     * {@link Fragment} displayed if we should display the {@link #sessionsListFragment} but the wanted
+     * permissions were not set.
+     * See {@link #isStoragePermissionGranted()}
+     */
+    public static class PermissionRequestFragment extends Fragment {
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            // Inflate the layout for this fragment
+            return inflater.inflate(R.layout.request_permission_fragment, container, false);
         }
     }
 }

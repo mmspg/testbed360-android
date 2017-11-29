@@ -5,7 +5,7 @@
     <item
         android:id="@+id/menu_help"
         android:icon="@drawable/ic_help"
-        android:onClick="openHelp"
+        android:onClick="toggleHelp"
         android:title="@string/help"
         app:showAsAction="ifRoom" />
 </menu>

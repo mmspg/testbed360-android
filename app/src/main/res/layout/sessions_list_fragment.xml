@@ -3,40 +3,64 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/noSessionText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:padding="?attr/dialogPreferredPadding"
-        android:text="@string/noSessionExplanation"
-        android:textAlignment="center"
-        android:visibility="gone" />
-
     <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/session_swipe_refresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <LinearLayout
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/select_session_text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/padding_activity_layout"
-                android:text="@string/please_select_session" />
-
-            <ListView
-                android:id="@+id/sessionsListView"
+            <LinearLayout
+                android:id="@+id/noSessionLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:theme="@style/AppTheme">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-            </ListView>
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/noSessionText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:padding="?attr/dialogPreferredPadding"
+                    android:text="@string/noSessionExplanation"
+                    android:textAlignment="center" />
+
+                <Button
+                    android:id="@+id/needHelpButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:onClick="toggleHelp"
+                    android:text="@string/need_help_button_text" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/sessionListLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <TextView
+                    android:id="@+id/select_session_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/padding_activity_layout"
+                    android:text="@string/please_select_session" />
+
+                <ListView
+                    android:id="@+id/sessionsListView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:theme="@style/AppTheme">
+
+                </ListView>
+            </LinearLayout>
+        </FrameLayout>
+
     </android.support.v4.widget.SwipeRefreshLayout>
 </FrameLayout>

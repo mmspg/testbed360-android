@@ -17,6 +17,7 @@ import android.widget.TextView;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.List;
@@ -202,6 +203,19 @@ public class ImagesSession {
                     }
                 }
             }
+            Collections.sort(sessions, new Comparator<ImagesSession>() {
+                @Override
+                public int compare(ImagesSession o1, ImagesSession o2) {
+                    if(o1 == null && o2!=null){
+                        return 1;
+                    }else if(o1 != null && o2==null){
+                        return -1;
+                    }else if (o1 == null){
+                        return 0;
+                    }
+                    return Integer.compare(o1.getId(),o2.getId());
+                }
+            });
             return sessions;
         }
     }

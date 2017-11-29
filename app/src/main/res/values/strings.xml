@@ -10,7 +10,7 @@
     <string name="grade_2">Correct</string>
     <string name="grade_3">Good</string>
     <string name="grade_4">Excellent</string>
-    <string name="noSessionExplanation">No session detected ! Please copy your pictures to Android/data/ch.epfl.mmspg.testbed360/files</string>
+    <string name="noSessionExplanation">No session detected ! Please copy your pictures to <b>Android/data/ch.epfl.mmspg.testbed360/files</b>.</string>
     <string name="please_select_session">Click on a session to start it :</string>
     <string name="error_loading_images">There was an error while loading images, please try again later</string>
     <string name="help">Help</string>
@@ -18,6 +18,9 @@
     <string name="start_training">Start training!</string>
     <string name="skip_training">Skip training</string>
     <string name="session_number">Session n°%1$d</string>
+    <string name="request_permission_text">We will first need you to allow Testbed 360 to read and write files, in order to display pictures and track the user\'s movements :</string>
+    <string name="request_permission_button_text">Start</string>
+    <string name="need_help_button_text">Need help?</string>
     <plurals name="sessions_count">
         <item quantity="one">%1$d session track.</item>
         <item quantity="other">%1$d session tracks.</item>
