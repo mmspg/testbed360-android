@@ -44,6 +44,8 @@ public class StartActivity extends AppCompatActivity {
     private HelpFragment helpFragment;
     private PermissionRequestFragment permissionRequestFragment;
 
+    private boolean resumeToHelp = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,11 +72,11 @@ public class StartActivity extends AppCompatActivity {
      * sets the {@link #sessionsListFragment} to the foreground if it's the case, or the
      * {@link #permissionRequestFragment}
      * <p>
-     * see {@link #isStoragePermissionGranted()}
+     * see {@link #isStoragePermissionGranted(Activity)}
      */
     private void showSessionsListFragment() {
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        if (isStoragePermissionGranted()) {
+        if (isStoragePermissionGranted(this)) {
             fragmentTransaction.hide(permissionRequestFragment);
             fragmentTransaction.hide(helpFragment);
             fragmentTransaction.show(sessionsListFragment);
@@ -111,11 +113,22 @@ public class StartActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-
-        //TODO fix onResume when user has changed permissions, both permission and sessionList fragments displayed !
-        if (!helpFragment.isVisible()) {
+        if (resumeToHelp) {
+            showHelpFragment();
+        } else {
             showSessionsListFragment();
         }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        resumeToHelp = helpFragment.isVisible();
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.hide(permissionRequestFragment);
+        fragmentTransaction.hide(helpFragment);
+        fragmentTransaction.hide(sessionsListFragment);
+        fragmentTransaction.commitNowAllowingStateLoss();
     }
 
     /**
@@ -148,7 +161,7 @@ public class StartActivity extends AppCompatActivity {
     public void requestPermissions(View v) {
         Log.d(TAG, "Permission is revoked (API>23)");
 
-        if (isStoragePermissionGranted()) {
+        if (isStoragePermissionGranted(this)) {
             showSessionsListFragment();
         } else {
             //here we are sure we are in API more than 23, no need to check again
@@ -193,6 +206,7 @@ public class StartActivity extends AppCompatActivity {
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, "Permission: " + permissions[0] + " was granted.");
             showSessionsListFragment();
+            sessionsListFragment.seekSessions();
         } else if (requestCode == FILE_PERMISSION_REQUEST_CODE
                 && grantResults[0] == PackageManager.PERMISSION_DENIED) {
             Log.d(TAG, "Permission: " + permissions[0] + " was not granted. Need to ask again");
@@ -209,19 +223,19 @@ public class StartActivity extends AppCompatActivity {
      * @return true if the user has given the app read and write to external storage permissions (or
      * device API < 23), false otherwise.
      */
-    public boolean isStoragePermissionGranted() {
+    public static boolean isStoragePermissionGranted(Activity activity) {
         //credits to MetaSnarf
         // https://stackoverflow.com/questions/33162152/storage-permission-error-in-marshmallow
 
         if (Build.VERSION.SDK_INT >= 23) {
-            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            if (activity.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     == PackageManager.PERMISSION_GRANTED
-                    && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    && activity.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
                     == PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "Permission is granted (API>23)");
                 return true;
             } else {
-                Log.d(TAG, "Permission is not granted ! Should reques it(API>23)");
+                Log.d(TAG, "Permission is not granted ! Should request it(API>23)");
                 return false;
             }
         } else { //permission is automatically granted on sdk<23 upon installation
@@ -263,9 +277,11 @@ public class StartActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onStart() {
-            super.onStart();
-            seekSessions();
+        public void onResume() {
+            super.onResume();
+            if (isStoragePermissionGranted(getActivity())) {
+                seekSessions();
+            }
         }
 
         /**
@@ -302,17 +318,13 @@ public class StartActivity extends AppCompatActivity {
      * the GitHub repo when public.
      */
     public static class HelpFragment extends Fragment {
+        MarkdownView mdView;
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             // Inflate the layout for this fragment
-            return inflater.inflate(R.layout.help_fragment, container, false);
-        }
-
-        @Override
-        public void onStart() {
-            super.onStart();
-            MarkdownView mdView = (MarkdownView) getActivity().findViewById(R.id.markdown_view);
+            View v = inflater.inflate(R.layout.help_fragment, container, false);
+            mdView = (MarkdownView) v.findViewById(R.id.markdown_view);
             InternalStyleSheet css = new Github();
             css.addRule("body",
                     "font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif",
@@ -330,13 +342,14 @@ public class StartActivity extends AppCompatActivity {
             //css.addRule("code", "max-width: 100%");
             mdView.addStyleSheet(css);
             mdView.loadMarkdownFromAsset("How to add pictures.md");
+            return v;
         }
     }
 
     /**
      * {@link Fragment} displayed if we should display the {@link #sessionsListFragment} but the wanted
      * permissions were not set.
-     * See {@link #isStoragePermissionGranted()}
+     * See {@link #isStoragePermissionGranted(Activity)}
      */
     public static class PermissionRequestFragment extends Fragment {
         @Override
