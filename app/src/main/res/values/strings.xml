@@ -5,11 +5,11 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="gvr_vr_mode_component" description="Google VR component name used for enabling VR mode" translatable="false">com.google.vr.vrcore/com.google.vr.vrcore.common.VrCoreListenerService</string>
     <string name="grade_none">None</string>
-    <string name="grade_0">Very bad</string>
-    <string name="grade_1">Bad</string>
-    <string name="grade_2">Correct</string>
-    <string name="grade_3">Good</string>
-    <string name="grade_4">Excellent</string>
+    <string name="grade_1">1 Bad</string>
+    <string name="grade_2">2 Poor</string>
+    <string name="grade_3">3 Fair</string>
+    <string name="grade_4">4 Good</string>
+    <string name="grade_5">5 Excellent</string>
     <string name="noSessionExplanation">No session detected ! Please copy your pictures to <b>Android/data/ch.epfl.mmspg.testbed360/files</b>.</string>
     <string name="please_select_session">Click on a session to start it :</string>
     <string name="error_loading_images">There was an error while loading images, please try again later</string>
