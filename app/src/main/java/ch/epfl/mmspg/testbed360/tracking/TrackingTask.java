@@ -46,7 +46,7 @@ public class TrackingTask extends AsyncTask<VRScene, String[], VRImage> {
     /**
      * The delay between logs of rotation of the {@link VRScene#getCamera()}
      */
-    private final static long LOOP_DELAY = 100;
+    private final static long LOOP_DELAY = 33;
 
     /**
      * The {@link CSVWriter} used to log every grades of images. The same used through the app, as
@@ -103,6 +103,7 @@ public class TrackingTask extends AsyncTask<VRScene, String[], VRImage> {
         File trackFile = getTrackFile(trackId, context);
         try {
             trackCSVWriter = new CSVWriter(new FileWriter(trackFile));
+            trackCSVWriter.writeNext(new String[]{"Time", "Roll", "Pitch", "Yaw"}, false);
         } catch (IOException e) {
             Log.e(TAG, "Cannot write to file " + trackFile);
             e.printStackTrace();
@@ -143,8 +144,8 @@ public class TrackingTask extends AsyncTask<VRScene, String[], VRImage> {
         }
         while (track) {
             long start = System.currentTimeMillis();
-            String[] angles = new String[]{
-                    //TODO convert to pitch, yaw and roll
+            String[] values = new String[]{
+                    Long.toString(start),
                     Double.toString(vrScenes[0].getCamera().getRotX()),
                     Double.toString(vrScenes[0].getCamera().getRotY()),
                     Double.toString(vrScenes[0].getCamera().getRotZ())
@@ -152,13 +153,14 @@ public class TrackingTask extends AsyncTask<VRScene, String[], VRImage> {
             //we do not call publishProgress as it would overload the main thread message queue, hence
             //onPostExecute would not be called/would be called way too late !
             if (trackCSVWriter != null) {
-                trackCSVWriter.writeNext(angles);
+                trackCSVWriter.writeNext(values,false);
             }
             long end = System.currentTimeMillis();
 
             try {
                 //ensures that we run every LOOP_DELAY ms, independent from the time to save data !
                 long sleep = LOOP_DELAY - (end - start);
+                //Log.d(TAG,"Delay : "+sleep);
                 Thread.sleep(sleep);
             } catch (InterruptedException ignored) {
             }
