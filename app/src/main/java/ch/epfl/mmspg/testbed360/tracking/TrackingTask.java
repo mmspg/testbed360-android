@@ -267,6 +267,7 @@ public class TrackingTask extends AsyncTask<VRScene, String[], VRImage> {
         try {
             if (SESSION_TRACK_CSV_WRITER == null) {
                 SESSION_TRACK_CSV_WRITER = new CSVWriter(new FileWriter(sessionTrackFile));
+                SESSION_TRACK_CSV_WRITER.writeNext(new String[]{"ImageName","Grade","TrackID"});
             }
         } catch (IOException e) {
             Log.e(TAG, "Cannot write to file " + sessionTrackFile);
