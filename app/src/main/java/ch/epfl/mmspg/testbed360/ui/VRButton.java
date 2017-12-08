@@ -5,12 +5,13 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.os.Handler;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -32,9 +33,6 @@ import java.util.concurrent.Callable;
 import ch.epfl.mmspg.testbed360.R;
 import ch.epfl.mmspg.testbed360.VRViewRenderer;
 
-import static android.view.View.OVER_SCROLL_IF_CONTENT_SCROLLS;
-import static android.view.View.OVER_SCROLL_NEVER;
-
 /**
  * This class is a helper class to represent UI buttons in the {@link VRViewRenderer}.
  * <p>
@@ -53,12 +51,13 @@ import static android.view.View.OVER_SCROLL_NEVER;
 public class VRButton extends RectangularPrism implements VRUI {
     private final static String TAG = "VRButton";
 
-    private final static int BUTTON_BG_COLOR = Color.argb(45, 55, 55, 55);
-    private final static int BUTTON_HOVER_BG_COLOR = Color.argb(160, 45, 45, 45);
-    private final static int BUTTON_SELECTED_BG_COLOR = Color.argb(255, 35, 35, 35);
+    private final static int BUTTON_BG_COLOR = Color.argb(65, 55, 55, 55);
+    private final static int BUTTON_HOVER_BG_COLOR = Color.argb(166, 45, 45, 45);
+    private final static int BUTTON_DISABLED_BG_COLOR = Color.argb(10, 45, 45, 45);
+    private final static int BUTTON_CLICKED_BG_COLOR = Color.argb(255, 35, 35, 35);
 
     final static float STANDARD_BUTTON_WIDTH = 10f;
-    private final static float STANDARD_BUTTON_HEIGHT = 2f;
+    final static float STANDARD_BUTTON_HEIGHT = 2f;
 
     private final static int VIBRATION_HOVER_MS = 20;
     private final static int VIBRATION_PRESS_MS = 50;
@@ -74,7 +73,7 @@ public class VRButton extends RectangularPrism implements VRUI {
     private SoftReference<Bitmap> bitmapTexture;
     private SoftReference<Texture> texture;
 
-    ScrollView layoutView;
+    private ScrollView layoutView;
     TextView textView;
     private String buttonId;
 
@@ -83,13 +82,17 @@ public class VRButton extends RectangularPrism implements VRUI {
 
     private String text;
 
-    private boolean isHovered = false;
-    private boolean isSelected = false;
-    private boolean isSelectable = true;
-    private Vibrator vibrator;
+    private volatile boolean isHovered = false;
+    private volatile boolean isHoverable = true;
+    private volatile boolean isSelected = false;
+    private volatile boolean isSelectable = false;
+    private volatile boolean isClicked = false;
+    private volatile boolean isClickable = true;
+    private volatile boolean isEnabled = true;
 
     private VRMenu parentMenu;
 
+    private Vibrator vibrator;
 
     private Callable onTriggerAction;
     private boolean isRecycled = false;
@@ -100,7 +103,7 @@ public class VRButton extends RectangularPrism implements VRUI {
      *
      * @param context context to load the default button layout from
      * @param text    the initial text we want to set
-     * @param square   if the button should be square or rectangular
+     * @param square  if the button should be square or rectangular
      * @throws ATexture.TextureException in case there was an error binding the initial texture
      */
     public VRButton(@NonNull Context context, @Nullable String text, boolean square) throws ATexture.TextureException {
@@ -122,9 +125,9 @@ public class VRButton extends RectangularPrism implements VRUI {
         textView = (TextView) layoutView.findViewById(R.id.vr_button_text);
         textView.setTextSize(24);
         textView.setText(text);
-        textView.layout(0, 0, CANVAS_WIDTH, isSquare ? CANVAS_WIDTH :CANVAS_HEIGHT);
+        textView.layout(0, 0, CANVAS_WIDTH, isSquare ? CANVAS_WIDTH : CANVAS_HEIGHT);
 
-        bitmapTexture = new SoftReference<Bitmap>(findUsableBitmap(CANVAS_WIDTH,isSquare ? CANVAS_WIDTH :CANVAS_HEIGHT));
+        bitmapTexture = new SoftReference<Bitmap>(findUsableBitmap(CANVAS_WIDTH, isSquare ? CANVAS_WIDTH : CANVAS_HEIGHT));
         texture = new SoftReference<Texture>(new Texture(buttonId, bitmapTexture.get()));
         Material prismMaterial = new Material();
         prismMaterial.setColorInfluence(0);
@@ -163,7 +166,7 @@ public class VRButton extends RectangularPrism implements VRUI {
             }
         }
         if (bitmap == null) {
-            return Bitmap.createBitmap(CANVAS_WIDTH, isSquare ? CANVAS_WIDTH :CANVAS_HEIGHT, Bitmap.Config.ARGB_8888);
+            return Bitmap.createBitmap(CANVAS_WIDTH, isSquare ? CANVAS_WIDTH : CANVAS_HEIGHT, Bitmap.Config.ARGB_8888);
         }
         return bitmap;
     }
@@ -176,7 +179,7 @@ public class VRButton extends RectangularPrism implements VRUI {
     public void setText(@Nullable String newText) {
         boolean needRedraw = this.text == null || !this.text.equals(newText);
         this.text = newText;
-        textView.setText(text);
+        textView.setText(Html.fromHtml(text));
 
         if (needRedraw) {
             redraw();
@@ -202,15 +205,17 @@ public class VRButton extends RectangularPrism implements VRUI {
      * @param isHovered of the button is considered hovered. Usually determined by a {@link VRMenu}
      */
     public void setHovered(boolean isHovered) {
-        //here we check the previous status, so that we do not repaint bitmap uselessly
-        if (!this.isHovered && isHovered) {
-            vibrate(VIBRATION_HOVER_MS);
-            if (!isSelected) {
-                setBackground(BUTTON_HOVER_BG_COLOR);
-            }
-        } else if (this.isHovered && !isHovered) {
-            if (!isSelected) {
-                setBackground(BUTTON_BG_COLOR);
+        if (isEnabled && isHoverable) {
+            //here we check the previous status, so that we do not repaint bitmap uselessly
+            if (!this.isHovered && isHovered) {
+                vibrate(VIBRATION_HOVER_MS);
+                if (!isSelected) {
+                    setBackground(BUTTON_HOVER_BG_COLOR);
+                }
+            } else if (this.isHovered && !isHovered) {
+                if (!isSelected) {
+                    setBackground(BUTTON_BG_COLOR);
+                }
             }
         }
         this.isHovered = isHovered;
@@ -242,10 +247,38 @@ public class VRButton extends RectangularPrism implements VRUI {
         }
     }
 
-    public void setSelected(boolean selected) {
-        if (isSelectable) {
-            isSelected = selected;
-            setBackground(isSelected ? BUTTON_SELECTED_BG_COLOR : BUTTON_HOVER_BG_COLOR);
+    public void setSelected(boolean clicked) {
+        if (isEnabled && isSelectable) {
+            isSelected = clicked;
+            setBackground(isSelected ? BUTTON_CLICKED_BG_COLOR : BUTTON_HOVER_BG_COLOR);
+        }
+    }
+
+    public void click() {
+        if (isEnabled && isClickable) {
+            isClicked = true;
+            setBackground(BUTTON_CLICKED_BG_COLOR);
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    isClicked = false;
+                    if(!isEnabled){
+                        setBackground(BUTTON_DISABLED_BG_COLOR);
+                    } else if((isSelectable && isSelected)){
+                        setBackground(BUTTON_CLICKED_BG_COLOR);
+                    }  else if(isClickable && isHovered){
+                        setBackground(BUTTON_HOVER_BG_COLOR);
+                    }
+                }
+            }, 50);
+        }
+    }
+
+    public void setEnabled(boolean enabled) {
+        if (isEnabled != enabled) {
+            isEnabled = enabled;
+            setBackground(isEnabled ? BUTTON_BG_COLOR : BUTTON_DISABLED_BG_COLOR);
         }
     }
 
@@ -282,6 +315,14 @@ public class VRButton extends RectangularPrism implements VRUI {
         isSelectable = selectable;
     }
 
+
+    public void setClickable(boolean clickable) {
+        this.isClickable = clickable;
+    }
+
+    public void setHoverable(boolean hoverable) {
+        isHoverable = hoverable;
+    }
     /**
      * Checks whether the button is being pressed (i.e. {@link #isHovered}, as we now there was a
      * trigger/touch done) and execute the {@link #onTriggerAction} associated to it.
@@ -292,10 +333,10 @@ public class VRButton extends RectangularPrism implements VRUI {
     @Override
     public boolean onCardboardTrigger() {
         if (isHovered) {
-            if (isSelectable) {
+            if (isClickable && isEnabled) {
                 vibrate(VIBRATION_PRESS_MS);
 
-                setSelected(!isSelected);
+                click();
                 if (onTriggerAction != null) {
                     try {
                         onTriggerAction.call();

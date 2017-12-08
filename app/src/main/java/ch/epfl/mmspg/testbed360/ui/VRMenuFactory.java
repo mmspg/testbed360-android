@@ -45,9 +45,6 @@ public final class VRMenuFactory {
         VRMenu menu = new VRMenu();
 
         try {
-            //TODO add the tutorial in this button, and store the string value in xml !
-            VRButton welcomeButton = new VRButton(renderer.getContext(), "Welcome !", true);
-            welcomeButton.setSelectable(false);
             if (RENDER_FPS) {
                 menu.addButton(buildFPSButton(renderer));
             }
@@ -58,12 +55,12 @@ public final class VRMenuFactory {
 
             final VRButton scrollUpButton = new VRButton(
                     renderer.getContext(),
-                    "<",
+                    "\u2BC5",
                     false
             );
             final VRButton scrollDownButton = new VRButton(
                     renderer.getContext(),
-                    ">",
+                    "\u2BC5",
                     false
             );
 
@@ -72,18 +69,19 @@ public final class VRMenuFactory {
                 public Object call() throws Exception {
                     text.scrollUp();
                     //TODO implement way to disable button
-                    scrollUpButton.setSelectable(text.canScrollUp());
-                    scrollDownButton.setSelectable(text.canScrollDown());
+                    scrollUpButton.setEnabled(text.canScrollUp());
+                    scrollDownButton.setEnabled(text.canScrollDown());
                     return null;
                 }
             });
+            scrollUpButton.setEnabled(false);
 
             scrollDownButton.setOnTriggerAction(new Callable() {
                 @Override
                 public Object call() throws Exception {
                     text.scrollDown();
-                    scrollUpButton.setSelectable(text.canScrollUp());
-                    scrollDownButton.setSelectable(text.canScrollDown());
+                    scrollUpButton.setEnabled(text.canScrollUp());
+                    scrollDownButton.setEnabled(text.canScrollDown());
                     return null;
                 }
             });
@@ -129,12 +127,13 @@ public final class VRMenuFactory {
                 }
             });
             menu.addAllButtons(
-                    text,
                     scrollUpButton,
+                    text,
                     scrollDownButton,
                     skipTrainingButton,
                     startButton
             );
+            menu.setY(5);
         } catch (ATexture.TextureException e) {
             e.printStackTrace();
         }
@@ -147,7 +146,7 @@ public final class VRMenuFactory {
      * we don't loose some FPS while displaying them...
      *
      * @param renderer the {@link Renderer} on which we monitor FPS
-     * @return the ready to use {@link VRButton}, which is no selectable. (see {@link VRButton#isSelectable}
+     * @return the ready to use {@link VRButton}, which is no selectable. (see {@link VRButton#isClickable}
      * @throws ATexture.TextureException if there was a texturing error while constructing the button
      */
     @NonNull
@@ -188,8 +187,9 @@ public final class VRMenuFactory {
                             grade.toString(renderer.getContext()),
                             false
                     );
-                    button.setSelectable(false);
+                    button.setClickable(false);
                     if (img != null && img.getGrade().equals(grade)) {
+                        button.setClickable(true);
                         button.setSelectable(true);
                         button.setSelected(true);
                         button.setOnTriggerAction(new Callable() {

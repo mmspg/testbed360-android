@@ -12,7 +12,7 @@ import org.rajawali3d.materials.textures.ATexture;
  */
 
 public class VRLongText extends VRButton implements VRUI {
-    private final static int MAX_PAGE = 100;
+    private final static int MAX_PAGE = 7;
     private int paddingBottom = 0;
     private boolean canScrollUp = false;
     private boolean canScrollDown = true;
@@ -26,6 +26,10 @@ public class VRLongText extends VRButton implements VRUI {
      */
     public VRLongText(@NonNull Context context, @Nullable String text) throws ATexture.TextureException {
         super(context, text, true);
+        setSelectable(false);
+        setClickable(false);
+        setHoverable(false);
+        moveUp(-STANDARD_BUTTON_HEIGHT*2);
     }
 
     public void scrollDown() {
@@ -47,7 +51,7 @@ public class VRLongText extends VRButton implements VRUI {
         canScrollUp = true;
         canScrollDown = true;
 
-        if (paddingBottom < 0) {
+        if (paddingBottom <= 0) {
             paddingBottom = 0;
             canScrollUp = false;
         }

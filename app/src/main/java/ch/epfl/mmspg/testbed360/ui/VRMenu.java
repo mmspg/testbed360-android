@@ -17,7 +17,7 @@ import ch.epfl.mmspg.testbed360.VRViewRenderer;
 
 public class VRMenu extends RectangularPrism implements VRUI {
     private final static String TAG = "VRMenu";
-    private final static float BUTTON_SPACING = 0.5f;
+    private final static float BUTTON_SPACING = 0.2f;
     private final static float STANDARD_DISTANCE = 20f;
 
     private static int MENU_COUNTER = 0;
@@ -57,8 +57,8 @@ public class VRMenu extends RectangularPrism implements VRUI {
         button.moveUp(-nextYPos);
     }
 
-    public void addAllButtons(@NonNull VRButton...buttons){
-        for (VRButton button : buttons){
+    public void addAllButtons(@NonNull VRButton... buttons) {
+        for (VRButton button : buttons) {
             addButton(button);
         }
     }
