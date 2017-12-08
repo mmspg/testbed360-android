@@ -1,5 +1,7 @@
 package ch.epfl.mmspg.testbed360.ui;
 
+import android.support.annotation.NonNull;
+
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.RectangularPrism;
@@ -53,6 +55,12 @@ public class VRMenu extends RectangularPrism implements VRUI {
         addChild(button);
 
         button.moveUp(-nextYPos);
+    }
+
+    public void addAllButtons(@NonNull VRButton...buttons){
+        for (VRButton button : buttons){
+            addButton(button);
+        }
     }
 
     public void removeButton(VRButton button) {

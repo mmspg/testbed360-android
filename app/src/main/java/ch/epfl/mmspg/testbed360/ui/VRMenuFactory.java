@@ -25,8 +25,6 @@ import ch.epfl.mmspg.testbed360.image.VRImage;
  */
 
 public final class VRMenuFactory {
-    private final static float STANDARD_BUTTON_WIDTH = 10f;
-    private final static float STANDARD_BUTTON_HEIGHT = 2f;
 
     //TODO remove or set false this in production, only for debugging
     private final static boolean RENDER_FPS = false;
@@ -48,16 +46,54 @@ public final class VRMenuFactory {
 
         try {
             //TODO add the tutorial in this button, and store the string value in xml !
-            VRButton welcomeButton = new VRButton(renderer.getContext(), "Welcome !", 10f, 2f);
+            VRButton welcomeButton = new VRButton(renderer.getContext(), "Welcome !", true);
             welcomeButton.setSelectable(false);
             if (RENDER_FPS) {
                 menu.addButton(buildFPSButton(renderer));
             }
+            final VRLongText text = new VRLongText(
+                    renderer.getContext(),
+                    renderer.getContext().getString(R.string.welcome_long_text)
+            );
 
-            final VRButton startButton = new VRButton(renderer.getContext(),
+            final VRButton scrollUpButton = new VRButton(
+                    renderer.getContext(),
+                    "<",
+                    false
+            );
+            final VRButton scrollDownButton = new VRButton(
+                    renderer.getContext(),
+                    ">",
+                    false
+            );
+
+            scrollUpButton.setOnTriggerAction(new Callable() {
+                @Override
+                public Object call() throws Exception {
+                    text.scrollUp();
+                    //TODO implement way to disable button
+                    scrollUpButton.setSelectable(text.canScrollUp());
+                    scrollDownButton.setSelectable(text.canScrollDown());
+                    return null;
+                }
+            });
+
+            scrollDownButton.setOnTriggerAction(new Callable() {
+                @Override
+                public Object call() throws Exception {
+                    text.scrollDown();
+                    scrollUpButton.setSelectable(text.canScrollUp());
+                    scrollDownButton.setSelectable(text.canScrollDown());
+                    return null;
+                }
+            });
+
+
+            final VRButton startButton = new VRButton(
+                    renderer.getContext(),
                     renderer.getContext().getString(R.string.start_training),
-                    STANDARD_BUTTON_WIDTH,
-                    STANDARD_BUTTON_HEIGHT);
+                    false
+            );
             startButton.setName("StartButton");
             startButton.setOnTriggerAction(new Callable() {
                 @Override
@@ -73,10 +109,11 @@ public final class VRMenuFactory {
                 }
             });
 
-            final VRButton skipTrainingButton = new VRButton(renderer.getContext(),
+            final VRButton skipTrainingButton = new VRButton(
+                    renderer.getContext(),
                     renderer.getContext().getString(R.string.skip_training),
-                    STANDARD_BUTTON_WIDTH,
-                    STANDARD_BUTTON_HEIGHT);
+                    false
+            );
             skipTrainingButton.setName("skipTrainingButton");
             skipTrainingButton.setOnTriggerAction(new Callable() {
                 @Override
@@ -91,10 +128,13 @@ public final class VRMenuFactory {
                     return null;
                 }
             });
-            menu.addButton(welcomeButton);
-            menu.addButton(startButton);
-
-            menu.addButton(skipTrainingButton);
+            menu.addAllButtons(
+                    text,
+                    scrollUpButton,
+                    scrollDownButton,
+                    skipTrainingButton,
+                    startButton
+            );
         } catch (ATexture.TextureException e) {
             e.printStackTrace();
         }
@@ -112,10 +152,7 @@ public final class VRMenuFactory {
      */
     @NonNull
     private static VRButton buildFPSButton(@NonNull final Renderer renderer) throws ATexture.TextureException {
-        final VRButton fpsButton = new VRButton(renderer.getContext(),
-                "",
-                STANDARD_BUTTON_WIDTH,
-                STANDARD_BUTTON_HEIGHT);
+        final VRButton fpsButton = new VRButton(renderer.getContext(),"",false);
         fpsButton.setName("FPSButton");
         renderer.setFPSUpdateListener(new OnFPSUpdateListener() {
             @Override
@@ -146,10 +183,10 @@ public final class VRMenuFactory {
         try {
             for (ImageGrade grade : ImageGrade.values()) {
                 if (!grade.equals(ImageGrade.NONE)) {
-                    final VRButton button = new VRButton(renderer.getContext(),
+                    final VRButton button = new VRButton(
+                            renderer.getContext(),
                             grade.toString(renderer.getContext()),
-                            STANDARD_BUTTON_WIDTH,
-                            STANDARD_BUTTON_HEIGHT
+                            false
                     );
                     button.setSelectable(false);
                     if (img != null && img.getGrade().equals(grade)) {
@@ -199,10 +236,10 @@ public final class VRMenuFactory {
         try {
             for (final ImageGrade grade : ImageGrade.values()) {
                 if (!grade.equals(ImageGrade.NONE)) {
-                    final VRButton button = new VRButton(renderer.getContext(),
+                    final VRButton button = new VRButton(
+                            renderer.getContext(),
                             grade.toString(renderer.getContext()),
-                            STANDARD_BUTTON_WIDTH,
-                            STANDARD_BUTTON_HEIGHT
+                            false
                     );
                     button.setOnTriggerAction(new Callable() {
                         @Override

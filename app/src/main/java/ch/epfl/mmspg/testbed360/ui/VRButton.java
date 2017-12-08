@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import org.rajawali3d.Object3D;
@@ -30,6 +31,9 @@ import java.util.concurrent.Callable;
 
 import ch.epfl.mmspg.testbed360.R;
 import ch.epfl.mmspg.testbed360.VRViewRenderer;
+
+import static android.view.View.OVER_SCROLL_IF_CONTENT_SCROLLS;
+import static android.view.View.OVER_SCROLL_NEVER;
 
 /**
  * This class is a helper class to represent UI buttons in the {@link VRViewRenderer}.
@@ -53,6 +57,9 @@ public class VRButton extends RectangularPrism implements VRUI {
     private final static int BUTTON_HOVER_BG_COLOR = Color.argb(160, 45, 45, 45);
     private final static int BUTTON_SELECTED_BG_COLOR = Color.argb(255, 35, 35, 35);
 
+    final static float STANDARD_BUTTON_WIDTH = 10f;
+    private final static float STANDARD_BUTTON_HEIGHT = 2f;
+
     private final static int VIBRATION_HOVER_MS = 20;
     private final static int VIBRATION_PRESS_MS = 50;
 
@@ -67,8 +74,8 @@ public class VRButton extends RectangularPrism implements VRUI {
     private SoftReference<Bitmap> bitmapTexture;
     private SoftReference<Texture> texture;
 
-    private View layoutView;
-    private TextView textView;
+    ScrollView layoutView;
+    TextView textView;
     private String buttonId;
 
     private float width;
@@ -83,40 +90,41 @@ public class VRButton extends RectangularPrism implements VRUI {
 
     private VRMenu parentMenu;
 
+
     private Callable onTriggerAction;
     private boolean isRecycled = false;
+    private boolean isSquare;
 
     /**
      * Creates a {@link VRButton}
      *
      * @param context context to load the default button layout from
      * @param text    the initial text we want to set
-     * @param width   the width (in OpenGL coordinates) of the button
-     * @param height  the height (in OpenGL coordinates) of the button
+     * @param square   if the button should be square or rectangular
      * @throws ATexture.TextureException in case there was an error binding the initial texture
      */
-    public VRButton(@NonNull Context context, @Nullable String text, float width, float height) throws ATexture.TextureException {
-        super(width, height, 0f);
-        this.width = width;
-        this.height = height;
-
+    public VRButton(@NonNull Context context, @Nullable String text, boolean square) throws ATexture.TextureException {
+        super(STANDARD_BUTTON_WIDTH, square ? STANDARD_BUTTON_WIDTH : STANDARD_BUTTON_HEIGHT, 0f);
+        this.width = STANDARD_BUTTON_WIDTH;
+        this.height = square ? STANDARD_BUTTON_WIDTH : STANDARD_BUTTON_HEIGHT;
+        this.isSquare = square;
         setVisible(true);
         setTransparent(true);
 
         buttonId = TAG + BUTTON_COUNTER++;
         Log.d(TAG, "Assigning id " + buttonId + " to button with text " + text);
 
-        layoutView = LayoutInflater
+        layoutView = (ScrollView) LayoutInflater
                 .from(context)
                 .inflate(R.layout.vr_button_layout, new LinearLayout(context), false);
         layoutView.setBackgroundColor(BUTTON_BG_COLOR);
-        layoutView.layout(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        layoutView.layout(0, 0, CANVAS_WIDTH, isSquare ? CANVAS_WIDTH : CANVAS_HEIGHT);
         textView = (TextView) layoutView.findViewById(R.id.vr_button_text);
         textView.setTextSize(24);
         textView.setText(text);
-        textView.layout(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        textView.layout(0, 0, CANVAS_WIDTH, isSquare ? CANVAS_WIDTH :CANVAS_HEIGHT);
 
-        bitmapTexture = new SoftReference<Bitmap>(findUsableBitmap());
+        bitmapTexture = new SoftReference<Bitmap>(findUsableBitmap(CANVAS_WIDTH,isSquare ? CANVAS_WIDTH :CANVAS_HEIGHT));
         texture = new SoftReference<Texture>(new Texture(buttonId, bitmapTexture.get()));
         Material prismMaterial = new Material();
         prismMaterial.setColorInfluence(0);
@@ -131,7 +139,8 @@ public class VRButton extends RectangularPrism implements VRUI {
     }
 
     @NonNull
-    private static Bitmap findUsableBitmap() {
+    private static Bitmap findUsableBitmap(int width, int height) {
+        boolean isSquare = width == height;
         Bitmap bitmap = null;
 
         if (!mReusableBitmaps.isEmpty()) {
@@ -141,7 +150,7 @@ public class VRButton extends RectangularPrism implements VRUI {
 
                 while (iterator.hasNext()) {
                     item = iterator.next().get();
-                    if (null != item && item.isMutable()) {
+                    if (null != item && item.isMutable() && item.getWidth() == width && item.getHeight() == height) {
                         bitmap = item;
                         // Remove from reusable set so it can't be used again.
                         iterator.remove();
@@ -154,7 +163,7 @@ public class VRButton extends RectangularPrism implements VRUI {
             }
         }
         if (bitmap == null) {
-            return Bitmap.createBitmap(CANVAS_WIDTH, CANVAS_HEIGHT, Bitmap.Config.ARGB_8888);
+            return Bitmap.createBitmap(CANVAS_WIDTH, isSquare ? CANVAS_WIDTH :CANVAS_HEIGHT, Bitmap.Config.ARGB_8888);
         }
         return bitmap;
     }
@@ -178,7 +187,7 @@ public class VRButton extends RectangularPrism implements VRUI {
      * Redraws the Bitmap linked to the button {@link #texture}. Can be used when changing text
      * or changing the backround color
      */
-    private void redraw() {
+    void redraw() {
         if (bitmapTexture.get().isMutable()) {
             Canvas buttonCanvas = new Canvas(bitmapTexture.get());
             buttonCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.MULTIPLY);
