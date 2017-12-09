@@ -10,6 +10,7 @@ import org.rajawali3d.util.OnFPSUpdateListener;
 import java.util.EmptyStackException;
 import java.util.concurrent.Callable;
 
+import ch.epfl.mmspg.testbed360.EndScene;
 import ch.epfl.mmspg.testbed360.R;
 import ch.epfl.mmspg.testbed360.VRScene;
 import ch.epfl.mmspg.testbed360.VRViewActivity;
@@ -146,6 +147,32 @@ public final class VRMenuFactory {
     }
 
     /**
+     * Builds the {@link VRMenu} displayed when the user has finished a {@link ch.epfl.mmspg.testbed360.image.ImagesSession}.
+     *
+     * @param renderer the {@link Renderer} used to switch between {@link org.rajawali3d.scene.Scene}
+     * @return the initialized and ready to use {@link VRMenu}
+     */
+    @NonNull
+    public static VRMenu endMenu(@NonNull final Renderer renderer) {
+        VRMenu menu = new VRMenu();
+
+        try {
+
+            final VRLongText text = new VRLongText(
+                    renderer.getContext(),
+                    renderer.getContext().getString(R.string.end_long_text)
+            );
+            menu.addAllButtons(
+                    text
+            );
+            menu.setY(5);
+        } catch (ATexture.TextureException e) {
+            e.printStackTrace();
+        }
+        return menu;
+    }
+
+    /**
      * Build a {@link VRButton} that displays the fPS in real time of the {@link Renderer}. As
      * the {@link VRButton#redraw()} method is quite costly, we round to the nearest 0.5 so that
      * we don't loose some FPS while displaying them...
@@ -255,7 +282,8 @@ public final class VRMenuFactory {
                                 ((VRScene) renderer.getCurrentScene()).recycle();
                                 renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_EVALUATION));
                             } catch (EmptyStackException e) {
-                                button.setText(renderer.getContext().getString(R.string.no_new_image));
+                                ((VRScene) renderer.getCurrentScene()).recycle();
+                                renderer.switchScene(new EndScene(renderer));
                             }
                             return null;
                         }
