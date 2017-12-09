@@ -13,9 +13,11 @@ import org.rajawali3d.materials.textures.ATexture;
 
 public class VRLongText extends VRButton implements VRUI {
     private final static int MAX_PAGE = 7;
-    private int paddingBottom = 0;
+    private int scrollingAmount = 0;
     private boolean canScrollUp = false;
     private boolean canScrollDown = true;
+
+    private boolean allTextRead = false;
 
     /**
      * Creates a {@link VRButton}
@@ -33,30 +35,29 @@ public class VRLongText extends VRButton implements VRUI {
     }
 
     public void scrollDown() {
-        paddingBottom += textView.getHeight();
+        scrollingAmount += textView.getHeight();
         canScrollDown = true;
         canScrollUp = true;
 
-        if (paddingBottom >= MAX_PAGE*textView.getHeight()) {
-            paddingBottom = MAX_PAGE*textView.getHeight();
+        if (scrollingAmount >= MAX_PAGE*textView.getHeight()) {
+            scrollingAmount = MAX_PAGE*textView.getHeight();
             canScrollDown = false;
+            allTextRead = true;
         }
-        textView.scrollTo(0,paddingBottom);
-        //textView.setTranslationY(paddingBottom);
+        textView.scrollTo(0, scrollingAmount);
         redraw();
     }
 
     public void scrollUp() {
-        paddingBottom -= textView.getHeight();
+        scrollingAmount -= textView.getHeight();
         canScrollUp = true;
         canScrollDown = true;
 
-        if (paddingBottom <= 0) {
-            paddingBottom = 0;
+        if (scrollingAmount <= 0) {
+            scrollingAmount = 0;
             canScrollUp = false;
         }
-        //textView.setTranslationY(paddingBottom);
-        textView.scrollTo(0,paddingBottom);
+        textView.scrollTo(0, scrollingAmount);
         redraw();
     }
 
@@ -66,5 +67,9 @@ public class VRLongText extends VRButton implements VRUI {
 
     public boolean canScrollDown() {
         return canScrollDown;
+    }
+
+    public boolean isAllTextRead() {
+        return allTextRead;
     }
 }

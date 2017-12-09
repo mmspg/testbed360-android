@@ -53,6 +53,27 @@ public final class VRMenuFactory {
                     renderer.getContext().getString(R.string.welcome_long_text)
             );
 
+            final VRButton startButton = new VRButton(
+                    renderer.getContext(),
+                    renderer.getContext().getString(R.string.start_training),
+                    false
+            );
+            startButton.setName("StartButton");
+            startButton.setOnTriggerAction(new Callable() {
+                @Override
+                public Object call() throws Exception {
+                    try {
+                        VRImage next = VRViewActivity.nextTraining();
+                        ((VRScene) renderer.getCurrentScene()).recycle();
+                        renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_TRAINING));
+                    } catch (EmptyStackException e) {
+                        startButton.setText(renderer.getContext().getString(R.string.no_new_image));
+                    }
+                    return null;
+                }
+            });
+            startButton.setEnabled(false);
+
             final VRButton scrollUpButton = new VRButton(
                     renderer.getContext(),
                     renderer.getContext().getString(R.string.up_button),
@@ -82,30 +103,14 @@ public final class VRMenuFactory {
                     text.scrollDown();
                     scrollUpButton.setEnabled(text.canScrollUp());
                     scrollDownButton.setEnabled(text.canScrollDown());
-                    return null;
-                }
-            });
-
-
-            final VRButton startButton = new VRButton(
-                    renderer.getContext(),
-                    renderer.getContext().getString(R.string.start_training),
-                    false
-            );
-            startButton.setName("StartButton");
-            startButton.setOnTriggerAction(new Callable() {
-                @Override
-                public Object call() throws Exception {
-                    try {
-                        VRImage next = VRViewActivity.nextTraining();
-                        ((VRScene) renderer.getCurrentScene()).recycle();
-                        renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_TRAINING));
-                    } catch (EmptyStackException e) {
-                        startButton.setText(renderer.getContext().getString(R.string.no_new_image));
+                    if(text.isAllTextRead()){
+                        startButton.setEnabled(true);
                     }
                     return null;
                 }
             });
+
+
 
             final VRButton skipTrainingButton = new VRButton(
                     renderer.getContext(),
