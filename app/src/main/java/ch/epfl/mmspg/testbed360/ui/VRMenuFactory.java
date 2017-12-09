@@ -12,6 +12,7 @@ import java.util.concurrent.Callable;
 
 import ch.epfl.mmspg.testbed360.EndScene;
 import ch.epfl.mmspg.testbed360.R;
+import ch.epfl.mmspg.testbed360.TrainingDoneScene;
 import ch.epfl.mmspg.testbed360.VRScene;
 import ch.epfl.mmspg.testbed360.VRViewActivity;
 import ch.epfl.mmspg.testbed360.image.ImageGrade;
@@ -153,7 +154,7 @@ public final class VRMenuFactory {
      * @return the initialized and ready to use {@link VRMenu}
      */
     @NonNull
-    public static VRMenu endMenu(@NonNull final Renderer renderer) {
+    public static VRMenu buildEndMenu(@NonNull final Renderer renderer) {
         VRMenu menu = new VRMenu();
 
         try {
@@ -164,6 +165,53 @@ public final class VRMenuFactory {
             );
             menu.addAllButtons(
                     text
+            );
+            menu.setY(5);
+        } catch (ATexture.TextureException e) {
+            e.printStackTrace();
+        }
+        return menu;
+    }
+
+    /**
+     * Builds the {@link VRMenu} displayed when the user has finished the {@link VRScene#MODE_TRAINING}
+     * of an {@link ch.epfl.mmspg.testbed360.image.ImagesSession}
+     *
+     * @param renderer the {@link Renderer} used to switch between {@link org.rajawali3d.scene.Scene}
+     * @return the initialized and ready to use {@link VRMenu}
+     */
+    @NonNull
+    public static VRMenu buildTrainingDoneMenu(@NonNull final Renderer renderer) {
+        VRMenu menu = new VRMenu();
+
+        try {
+
+            final VRLongText text = new VRLongText(
+                    renderer.getContext(),
+                    renderer.getContext().getString(R.string.training_done_text)
+            );
+            final VRButton startButton = new VRButton(
+                    renderer.getContext(),
+                    renderer.getContext().getString(R.string.start),
+                    false
+            );
+            startButton.setName("StartButton");
+            startButton.setOnTriggerAction(new Callable() {
+                @Override
+                public Object call() throws Exception {
+                    try {
+                        VRImage next = VRViewActivity.nextEvaluation();
+                        ((VRScene) renderer.getCurrentScene()).recycle();
+                        renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_EVALUATION));
+                    } catch (EmptyStackException e2) {
+                        startButton.setText("No new image");
+                    }
+                    return null;
+                }
+            });
+            menu.addAllButtons(
+                    text,
+                    startButton
             );
             menu.setY(5);
         } catch (ATexture.TextureException e) {
@@ -232,13 +280,8 @@ public final class VRMenuFactory {
                                     ((VRScene) renderer.getCurrentScene()).recycle();
                                     renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_TRAINING));
                                 } catch (EmptyStackException e) {
-                                    try {
-                                        VRImage next = VRViewActivity.nextEvaluation();
-                                        ((VRScene) renderer.getCurrentScene()).recycle();
-                                        renderer.switchScene(new VRScene(renderer, next, VRScene.MODE_EVALUATION));
-                                    } catch (EmptyStackException e2) {
-                                        button.setText("No new image"); //TODO put text in strings.xml
-                                    }
+                                    ((VRScene) renderer.getCurrentScene()).recycle();
+                                    renderer.switchScene(new TrainingDoneScene(renderer));
                                 }
                                 return null;
                             }

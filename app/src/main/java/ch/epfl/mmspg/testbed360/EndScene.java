@@ -7,15 +7,8 @@ import org.rajawali3d.renderer.Renderer;
 
 import java.io.IOException;
 
-import ch.epfl.mmspg.testbed360.R;
-import ch.epfl.mmspg.testbed360.VRScene;
 import ch.epfl.mmspg.testbed360.image.ImageUtils;
 import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
-
-/**
- * @author Louis-Maxence Garret <louis-maxence.garret@epfl.ch>
- * @date 09/12/2017
- */
 
 /**
  * Last {@link VRScene} to be displayed on the app once a {@link ch.epfl.mmspg.testbed360.image.ImagesSession}
@@ -45,7 +38,7 @@ public final class EndScene extends VRScene {
 
     @Override
     protected void initMenu(@NonNull final Renderer renderer) {
-        menu = VRMenuFactory.endMenu(renderer);
+        menu = VRMenuFactory.buildEndMenu(renderer);
         menu.setVisible(true);
         addChild(menu);
     }
