@@ -16,6 +16,9 @@ import ch.epfl.mmspg.testbed360.image.ImageUtils;
 import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
 
 /**
+ * First {@link VRScene} to be displayed on the app once a {@link ch.epfl.mmspg.testbed360.image.ImagesSession}
+ * has been selected. Prompts the user with an explanatory text and a button to actually start the
+ * {@link VRScene#MODE_TRAINING}
  * @author Louis-Maxence Garret <louis-maxence.garret@epfl.ch>
  * @date 31/10/2017
  */

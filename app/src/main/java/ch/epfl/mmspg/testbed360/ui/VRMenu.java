@@ -10,7 +10,8 @@ import java.util.ArrayList;
 
 import ch.epfl.mmspg.testbed360.VRViewRenderer;
 
-/**
+/** A menu to hold multiples {@link VRButton}s and {@link VRLongText}, ordered vertically. Is responsible
+ * for propagating a trigger event to the {@link VRUI} elements it is the parent of.
  * @author Louis-Maxence Garret <louis-maxence.garret@epfl.ch>
  * @date 21/10/2017
  */
@@ -45,6 +46,10 @@ public class VRMenu extends RectangularPrism implements VRUI {
         tag = TAG + MENU_COUNTER++;
     }
 
+    /**
+     * Adds a {@link VRButton} as a child of this {@link VRMenu}
+     * @param button the {@link VRButton} to add
+     */
     public void addButton(VRButton button) {
         if (button == null) {
             throw new IllegalArgumentException("VRButton cannot be null");
@@ -57,6 +62,8 @@ public class VRMenu extends RectangularPrism implements VRUI {
         button.moveUp(-nextYPos);
     }
 
+    /**see {@link #addButton(VRButton)}
+     */
     public void addAllButtons(@NonNull VRButton... buttons) {
         for (VRButton button : buttons) {
             addButton(button);
@@ -121,6 +128,10 @@ public class VRMenu extends RectangularPrism implements VRUI {
 
     }
 
+    /**
+     * Computes the position to give to the next {@link VRUI} element added to this menu
+     * @return the y position to give to the element
+     */
     private float computeNextButtonY() {
         float y = 0;
         for (VRButton button : buttons) {

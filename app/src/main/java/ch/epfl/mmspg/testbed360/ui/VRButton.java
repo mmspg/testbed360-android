@@ -51,15 +51,17 @@ import ch.epfl.mmspg.testbed360.VRViewRenderer;
 public class VRButton extends RectangularPrism implements VRUI {
     private final static String TAG = "VRButton";
 
+    /* Predefined background colors */
     private final static int BUTTON_BG_COLOR = Color.argb(65, 55, 55, 55);
     private final static int BUTTON_HOVER_BG_COLOR = Color.argb(166, 45, 45, 45);
     private final static int BUTTON_DISABLED_BG_COLOR = Color.argb(10, 45, 45, 45);
     private final static int BUTTON_CLICKED_BG_COLOR = Color.argb(255, 35, 35, 35);
 
+    /* Predefined text colors */
     private final static int BUTTON_TEXT_COLOR = Color.argb(255, 255, 255, 255);
     private final static int BUTTON_DISABLED_TEXT_COLOR = Color.argb(165, 155, 155, 155);
 
-
+    /* Standard values for buttons */
     final static float STANDARD_BUTTON_WIDTH = 10f;
     final static float STANDARD_BUTTON_HEIGHT = 2f;
 
@@ -69,23 +71,25 @@ public class VRButton extends RectangularPrism implements VRUI {
     private final static int CANVAS_WIDTH = 1024;
     private final static int CANVAS_HEIGHT = 256;
 
-    private final static Set<SoftReference<Bitmap>> mReusableBitmaps = new HashSet<>();
-
+    private final static Set<SoftReference<Bitmap>> reusableBitmaps = new HashSet<>();
 
     private static int BUTTON_COUNTER = 0;
 
     private SoftReference<Bitmap> bitmapTexture;
     private SoftReference<Texture> texture;
 
+    /* UI components to display the button*/
     private ScrollView layoutView;
     TextView textView;
     private String buttonId;
+    private String text;
 
     private float width;
     private float height;
 
-    private String text;
+    private Callable onTriggerAction;
 
+    /* States of the button */
     private volatile boolean isHovered = false;
     private volatile boolean isHoverable = true;
     private volatile boolean isSelected = false;
@@ -93,13 +97,12 @@ public class VRButton extends RectangularPrism implements VRUI {
     private volatile boolean isClicked = false;
     private volatile boolean isClickable = true;
     private volatile boolean isEnabled = true;
+    private boolean isRecycled = false;
 
     private VRMenu parentMenu;
 
     private Vibrator vibrator;
 
-    private Callable onTriggerAction;
-    private boolean isRecycled = false;
     private boolean isSquare;
 
     /**
@@ -145,14 +148,23 @@ public class VRButton extends RectangularPrism implements VRUI {
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
     }
 
+    /**
+     * Looks through the {@link #reusableBitmaps} for a {@link Bitmap} of the same size in order
+     * to draw in it again and thus spare some memory
+     *
+     * @param width width of the {@link Bitmap} to use
+     * @param height height of the {@link Bitmap} to use
+     * @return a {@link Bitmap} of the same size that can be reused if it exists, or a new {@link Bitmap}
+     * otherwise
+     */
     @NonNull
     private static Bitmap findUsableBitmap(int width, int height) {
         boolean isSquare = width == height;
         Bitmap bitmap = null;
 
-        if (!mReusableBitmaps.isEmpty()) {
-            synchronized (mReusableBitmaps) {
-                final Iterator<SoftReference<Bitmap>> iterator = mReusableBitmaps.iterator();
+        if (!reusableBitmaps.isEmpty()) {
+            synchronized (reusableBitmaps) {
+                final Iterator<SoftReference<Bitmap>> iterator = reusableBitmaps.iterator();
                 Bitmap item;
 
                 while (iterator.hasNext()) {
@@ -227,10 +239,10 @@ public class VRButton extends RectangularPrism implements VRUI {
         this.isHovered = isHovered;
     }
 
-    public Callable getOnTriggerAction() {
-        return onTriggerAction;
-    }
-
+    /**
+     * Sets the action to execute whenever the {@link VRButton} is clicked
+     * @param onTriggerAction action to execute
+     */
     public void setOnTriggerAction(@Nullable Callable onTriggerAction) {
         this.onTriggerAction = onTriggerAction;
     }
@@ -253,13 +265,21 @@ public class VRButton extends RectangularPrism implements VRUI {
         }
     }
 
-    public void setSelected(boolean clicked) {
+    /**
+     * Sets the current button as selected; i.e. a darker background to highlight it
+     * @param selected if this button is selected
+     */
+    public void setSelected(boolean selected) {
         if (isEnabled && isSelectable) {
-            isSelected = clicked;
+            isSelected = selected;
             setBackground(isSelected ? BUTTON_CLICKED_BG_COLOR : BUTTON_HOVER_BG_COLOR);
         }
     }
 
+    /**
+     * Execute the {@link #onTriggerAction} associated to a button, and changes it backgrounds
+     * to match the button's state
+     */
     public void click() {
         if (isEnabled && isClickable) {
             isClicked = true;
@@ -326,15 +346,26 @@ public class VRButton extends RectangularPrism implements VRUI {
         return height;
     }
 
+    /**
+     * Toggles the possibility to select the button
+     * @param selectable if the button should be selectable, see {@link #setSelected(boolean)}
+     */
     public void setSelectable(boolean selectable) {
         isSelectable = selectable;
     }
 
-
+    /**
+     * Toggles the possibility to click on the button
+     * @param clickable if the button should be clickable, see {@link #click()}
+     */
     public void setClickable(boolean clickable) {
         this.isClickable = clickable;
     }
 
+    /**
+     * Toggles the possibility to hover on the button
+     * @param hoverable if the button should be hoverable, see {@link #setHovered(boolean)}
+     */
     public void setHoverable(boolean hoverable) {
         isHoverable = hoverable;
     }
@@ -381,7 +412,7 @@ public class VRButton extends RectangularPrism implements VRUI {
     @Override
     public void recycle() {
         isRecycled = true;
-        mReusableBitmaps.add(bitmapTexture);
+        reusableBitmaps.add(bitmapTexture);
         TextureManager.getInstance().removeTexture(texture.get());
         texture.clear();
         layoutView = null;
