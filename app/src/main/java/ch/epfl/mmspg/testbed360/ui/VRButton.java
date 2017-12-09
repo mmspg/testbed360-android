@@ -183,7 +183,9 @@ public class VRButton extends RectangularPrism implements VRUI {
     public void setText(@Nullable String newText) {
         boolean needRedraw = this.text == null || !this.text.equals(newText);
         this.text = newText;
-        textView.setText(Html.fromHtml(text));
+        if (textView != null) {
+            textView.setText(Html.fromHtml(text));
+        }
 
         if (needRedraw) {
             redraw();
@@ -195,7 +197,7 @@ public class VRButton extends RectangularPrism implements VRUI {
      * or changing the backround color
      */
     void redraw() {
-        if (bitmapTexture.get().isMutable()) {
+        if (bitmapTexture.get().isMutable() && layoutView != null) {
             Canvas buttonCanvas = new Canvas(bitmapTexture.get());
             buttonCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.MULTIPLY);
             layoutView.draw(buttonCanvas);
@@ -267,9 +269,13 @@ public class VRButton extends RectangularPrism implements VRUI {
                 @Override
                 public void run() {
                     isClicked = false;
-                    textView.setTextColor(BUTTON_TEXT_COLOR);
+                    if(textView != null) {
+                        textView.setTextColor(BUTTON_TEXT_COLOR);
+                    }
                     if (!isEnabled) {
-                        textView.setTextColor(BUTTON_DISABLED_TEXT_COLOR);
+                        if(textView != null) {
+                            textView.setTextColor(BUTTON_DISABLED_TEXT_COLOR);
+                        }
                         setBackground(BUTTON_DISABLED_BG_COLOR);
                     } else if ((isSelectable && isSelected)) {
                         setBackground(BUTTON_CLICKED_BG_COLOR);
@@ -284,7 +290,9 @@ public class VRButton extends RectangularPrism implements VRUI {
     public void setEnabled(boolean enabled) {
         if (isEnabled != enabled) {
             isEnabled = enabled;
-            textView.setTextColor(isEnabled ? BUTTON_TEXT_COLOR : BUTTON_DISABLED_TEXT_COLOR);
+            if(textView != null) {
+                textView.setTextColor(isEnabled ? BUTTON_TEXT_COLOR : BUTTON_DISABLED_TEXT_COLOR);
+            }
             setBackground(isEnabled ? BUTTON_BG_COLOR : BUTTON_DISABLED_BG_COLOR);
         }
     }
