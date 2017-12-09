@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Testbed 360</string>
+    <string name="grade_none">Aucune</string>
+    <string name="grade_1">1 Mauvais</string>
+    <string name="grade_2">2 Pauvre</string>
+    <string name="grade_3">3 Correct</string>
+    <string name="grade_4">4 Bon</string>
+    <string name="grade_5">5 Excellent</string>
+    <string name="noSessionExplanation">Pas de session détectée ! Merci de copier vos images vers <b>Android/data/ch.epfl.mmspg.testbed360/files</b>.</string>
+    <string name="please_select_session">Cliquer sur une session pour la commencer :</string>
+    <string name="error_loading_images">Il y a eu une erreur en chargeant les images, merci de recommencer plus tard</string>
+    <string name="help">Aide</string>
+    <string name="no_new_image">Pas de nouvelle image</string>
+    <string name="start_training">Commencer l\'entraînement !</string>
+    <string name="start">Commencer !</string>
+    <string name="skip_training">Passer l\'entraînement</string>
+    <string name="session_number">Session n°%1$d</string>
+    <string name="request_permission_text">Nous avons besoin de votre autorisation pour que Testbed 360 puisse lire et écrire des fichiers, afficher des images et suivre les mouvements de l\'utilisateur :</string>
+    <string name="request_permission_button_text">Commencer</string>
+    <string name="need_help_button_text">Besoin d\'aide ?</string>
+    <string name="training_done_text">L\'entraînement est maintenant fini. En cliquant sur Commencer, vous pourrez noter les images qui vous seront montrées comme à l\'entraînement. Vous pouvez maintenant débuter !</string>
+    <string name="end_long_text">Vous avez maintenant fini la session, vous pouvez redonner le casque au superviseur. Merci de votre temps !</string>
+</resources>
