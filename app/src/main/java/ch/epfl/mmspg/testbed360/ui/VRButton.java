@@ -56,6 +56,10 @@ public class VRButton extends RectangularPrism implements VRUI {
     private final static int BUTTON_DISABLED_BG_COLOR = Color.argb(10, 45, 45, 45);
     private final static int BUTTON_CLICKED_BG_COLOR = Color.argb(255, 35, 35, 35);
 
+    private final static int BUTTON_TEXT_COLOR = Color.argb(255, 255, 255, 255);
+    private final static int BUTTON_DISABLED_TEXT_COLOR = Color.argb(165, 155, 155, 155);
+
+
     final static float STANDARD_BUTTON_WIDTH = 10f;
     final static float STANDARD_BUTTON_HEIGHT = 2f;
 
@@ -263,11 +267,13 @@ public class VRButton extends RectangularPrism implements VRUI {
                 @Override
                 public void run() {
                     isClicked = false;
-                    if(!isEnabled){
+                    textView.setTextColor(BUTTON_TEXT_COLOR);
+                    if (!isEnabled) {
+                        textView.setTextColor(BUTTON_DISABLED_TEXT_COLOR);
                         setBackground(BUTTON_DISABLED_BG_COLOR);
-                    } else if((isSelectable && isSelected)){
+                    } else if ((isSelectable && isSelected)) {
                         setBackground(BUTTON_CLICKED_BG_COLOR);
-                    }  else if(isClickable && isHovered){
+                    } else if (isClickable && isHovered) {
                         setBackground(BUTTON_HOVER_BG_COLOR);
                     }
                 }
@@ -278,6 +284,7 @@ public class VRButton extends RectangularPrism implements VRUI {
     public void setEnabled(boolean enabled) {
         if (isEnabled != enabled) {
             isEnabled = enabled;
+            textView.setTextColor(isEnabled ? BUTTON_TEXT_COLOR : BUTTON_DISABLED_TEXT_COLOR);
             setBackground(isEnabled ? BUTTON_BG_COLOR : BUTTON_DISABLED_BG_COLOR);
         }
     }
@@ -323,6 +330,7 @@ public class VRButton extends RectangularPrism implements VRUI {
     public void setHoverable(boolean hoverable) {
         isHoverable = hoverable;
     }
+
     /**
      * Checks whether the button is being pressed (i.e. {@link #isHovered}, as we now there was a
      * trigger/touch done) and execute the {@link #onTriggerAction} associated to it.

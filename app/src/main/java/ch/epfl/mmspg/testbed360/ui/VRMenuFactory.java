@@ -55,12 +55,12 @@ public final class VRMenuFactory {
 
             final VRButton scrollUpButton = new VRButton(
                     renderer.getContext(),
-                    "\u2BC5",
+                    renderer.getContext().getString(R.string.up_button),
                     false
             );
             final VRButton scrollDownButton = new VRButton(
                     renderer.getContext(),
-                    "\u2BC5",
+                    renderer.getContext().getString(R.string.down_button),
                     false
             );
 
