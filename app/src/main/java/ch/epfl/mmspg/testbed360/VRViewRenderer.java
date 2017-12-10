@@ -90,7 +90,7 @@ public class VRViewRenderer extends VRRenderer {
         //camera orientation in onDrawEye
         //mHeadViewQuaternion.inverse();
 
-        mForwardVec.setAll(0, 0, 1);
+        mForwardVec.setAll(0, 0.1, 1);
         mForwardVec.rotateBy(mHeadViewQuaternion);
 
         mHeadTranslation.setAll(mHeadViewMatrix.getTranslation());

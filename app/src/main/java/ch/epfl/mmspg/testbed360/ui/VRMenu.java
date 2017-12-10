@@ -115,7 +115,7 @@ public class VRMenu extends RectangularPrism implements VRUI {
             if (consumed) {
                 button.setHovered(false);
             } else {
-                consumed = renderer.isLookingAtObject(button, 5);
+                consumed = renderer.isLookingAtObject(button, 3);
                 button.setHovered(consumed);
             }
             /*Vector3 pos = button.getPosition();

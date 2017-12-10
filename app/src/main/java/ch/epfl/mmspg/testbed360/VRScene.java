@@ -92,7 +92,7 @@ public class VRScene extends Scene implements VRUI {
      */
     Sphere selectionDot;
     private double[] newDotPos = new double[4];
-    private double[] initDotPos = {0, 0, -3, 1.0f};
+    private double[] initDotPos = {0, -0.3, -3, 1.0f};
     private Matrix4 headViewMatrix = new Matrix4();
 
 
