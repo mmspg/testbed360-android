@@ -160,7 +160,10 @@ public class TrackingTask extends AsyncTask<VRScene, String[], VRImage> {
             try {
                 //ensures that we run every LOOP_DELAY ms, independent from the time to save data !
                 long sleep = LOOP_DELAY - (end - start);
-                //Log.d(TAG,"Delay : "+sleep);
+                if(sleep < 0){
+                    sleep = 0;
+                }
+                Log.d(TAG,"Delay : "+sleep);
                 Thread.sleep(sleep);
             } catch (InterruptedException ignored) {
             }
