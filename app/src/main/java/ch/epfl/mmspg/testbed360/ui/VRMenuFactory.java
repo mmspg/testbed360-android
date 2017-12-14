@@ -114,7 +114,7 @@ public final class VRMenuFactory {
 
 
 
-            final VRButton skipTrainingButton = new VRButton(
+            /*final VRButton skipTrainingButton = new VRButton(
                     renderer.getContext(),
                     renderer.getContext().getString(R.string.skip_training),
                     false
@@ -132,12 +132,12 @@ public final class VRMenuFactory {
                     }
                     return null;
                 }
-            });
+            });*/
             menu.addAllButtons(
                     scrollUpButton,
                     text,
                     scrollDownButton,
-                    skipTrainingButton,
+                    //skipTrainingButton,
                     startButton
             );
             menu.setY(5);
