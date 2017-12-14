@@ -2,6 +2,7 @@ package ch.epfl.mmspg.testbed360.image;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -13,6 +14,8 @@ import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ch.epfl.mmspg.testbed360.R;
+
 /**
  * A {@link VRImage} is a 360° image that will be assessed in this app. It is defined by a {@link File}
  * that links to the image, but also by various properties such as codec, quality, grade etc...
@@ -21,7 +24,7 @@ import java.util.regex.Pattern;
  * @date 29/10/2017
  */
 
-public final class VRImage {
+public class VRImage {
     private final static String TAG = "VRImage";
 
     private final static int UNKNOWN_QUALITY = -1;
@@ -34,6 +37,11 @@ public final class VRImage {
      * {@link File} containing this {@link VRImage}
      */
     private File file;
+
+    /**
+     * Only for default picture, so that we do not need a file. see {@link VRImage.Default}
+     */
+    int drawableId = -1;
     /**
      * A {@link String} representing the name of the author
      */
@@ -86,6 +94,11 @@ public final class VRImage {
         this.file = file;
         initFromName(file.getName());
         Log.i(TAG, "Loaded img: " + this);
+    }
+
+    private VRImage(int drawableId) {
+        this.drawableId = drawableId;
+        initFromName("unknown_lemanlake_equirec_2250x1500_raw_q00.png");
     }
 
     /**
@@ -202,5 +215,30 @@ public final class VRImage {
 
     public void setGrade(@NonNull ImageGrade grade) {
         this.grade = grade;
+    }
+
+
+    public static class Default extends VRImage {
+        public static final Default INSTANCE = new Default();
+        public Bitmap[] bitmaps = new Bitmap[6];
+
+        /**
+         * @see {@link VRImage#VRImage(File)}
+         */
+        private Default() throws IllegalStateException {
+            super(R.drawable.unknown_lemanlake_equirec_2250x1500_raw_q00);
+        }
+
+        @Nullable
+        public Bitmap[] getBitmap(@NonNull Context context) throws IOException {
+
+            if (bitmaps[0] == null || bitmaps[0].isRecycled()) {
+                BitmapFactory.Options opt = new BitmapFactory.Options();
+                opt.inPreferredConfig = Bitmap.Config.RGB_565;
+                opt.inMutable = true;
+                bitmaps[0] = BitmapFactory.decodeResource(context.getResources(), this.drawableId,opt);
+            }
+            return bitmaps;
+        }
     }
 }

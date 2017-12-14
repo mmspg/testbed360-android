@@ -8,6 +8,7 @@ import org.rajawali3d.renderer.Renderer;
 import java.io.IOException;
 
 import ch.epfl.mmspg.testbed360.image.ImageUtils;
+import ch.epfl.mmspg.testbed360.image.VRImage;
 import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
 
 /**
@@ -19,20 +20,10 @@ import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
  */
 
 public final class TrainingDoneScene extends VRScene {
-    private final static String TAG = "WelcomeScene";
-
-    //TODO remove or set false this in production, only for debugging
-    private final static boolean RENDER_AXIS = true;
-
+    private final static String TAG = "TrainingDoneScene";
 
     public TrainingDoneScene(@NonNull Renderer renderer) {
-        super(renderer, null, MODE_TRAINING);
-        try {
-            setSkybox(ImageUtils.loadCubicMap(renderer.getContext(), R.drawable.jvet_kiteflite_cubemap32_2250x1500_raw_q00));
-        } catch (IOException e) {
-            Log.e(TAG, "Error setting the skybox texture");
-            e.printStackTrace();
-        }
+        super(renderer, VRImage.Default.INSTANCE, MODE_TRAINING);
         selectionDot.setVisible(true);
     }
 

@@ -72,7 +72,7 @@ public class VRScene extends Scene implements VRUI {
     /**
      * The {@link VRImage} that is to be displayed in this scene.
      */
-    private VRImage vrImage;
+    VRImage vrImage;
 
     /**
      * A {@link Sphere} used for the equirectangular projection
@@ -152,7 +152,7 @@ public class VRScene extends Scene implements VRUI {
      *
      * @param context {@link Context} to load the {@link Bitmap}s from
      */
-    private void initSphere(@NonNull Context context) {
+    void initSphere(@NonNull Context context) {
         if (sphereMaterial == null) {
             sphereMaterial = new Material();
             sphereMaterial.setColor(0);

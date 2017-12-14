@@ -3,11 +3,13 @@ package ch.epfl.mmspg.testbed360;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.renderer.Renderer;
 
 import java.io.IOException;
 
 import ch.epfl.mmspg.testbed360.image.ImageUtils;
+import ch.epfl.mmspg.testbed360.image.VRImage;
 import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
 
 /**
@@ -19,20 +21,10 @@ import ch.epfl.mmspg.testbed360.ui.VRMenuFactory;
  */
 
 public final class EndScene extends VRScene {
-    private final static String TAG = "WelcomeScene";
-
-    //TODO remove or set false this in production, only for debugging
-    private final static boolean RENDER_AXIS = true;
-
+    private final static String TAG = "EndScene";
 
     public EndScene(@NonNull Renderer renderer) {
-        super(renderer, null, MODE_TRAINING);
-        try {
-            setSkybox(ImageUtils.loadCubicMap(renderer.getContext(), R.drawable.jvet_kiteflite_cubemap32_2250x1500_raw_q00));
-        } catch (IOException e) {
-            Log.e(TAG, "Error setting the skybox texture");
-            e.printStackTrace();
-        }
+        super(renderer, VRImage.Default.INSTANCE, MODE_TRAINING);
         selectionDot.setVisible(true);
     }
 
