@@ -12,7 +12,7 @@ import org.rajawali3d.materials.textures.ATexture;
  */
 
 public class VRLongText extends VRButton implements VRUI {
-    private final static int MAX_PAGE = 7;
+    private final static int MAX_PAGE = 1;
     private int scrollingAmount = 0;
     private boolean canScrollUp = false;
     private boolean canScrollDown = true;
