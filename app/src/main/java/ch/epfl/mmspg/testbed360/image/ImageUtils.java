@@ -20,7 +20,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -511,5 +513,50 @@ public final class ImageUtils {
         opt.inBitmap = sphereBitmap[0];
         opt.inMutable = true;
         return new Bitmap[]{BitmapFactory.decodeFile(image.getFile().getAbsolutePath(), opt)};
+    }
+
+    /**
+     * Sorts the given {@link Collection<VRImage>} into a new {@link List<VRImage>} so that the order
+     * of the training pictures follows this grading order if possible : 5,1,3. If one of those grades
+     * is not in the collection, does not change the order. If there are more possible grades, corresponding
+     * {@link VRImage}s are appended to the end of the list
+     * @param vrImages {@link Collection<VRImage>} to sort
+     * @return a sorted {@link List} of {@link VRImage}s
+     */
+    @NonNull
+    public static List<VRImage> sortTrainingPictures(@NonNull Collection<VRImage> vrImages){
+        List<VRImage> sortedVRImages = new ArrayList<>();
+        sortedVRImages.addAll(vrImages);
+        boolean existsGrade1 = false;
+        boolean existsGrade3 = false;
+        boolean existsGrade5 = false;
+
+        for(VRImage vrImage : sortedVRImages){
+            if(vrImage.getGrade().toInt() == 1){
+                existsGrade1 = true;
+            }
+            if(vrImage.getGrade().toInt() == 3){
+                existsGrade3 = true;
+            }
+            if(vrImage.getGrade().toInt() == 5){
+                existsGrade5 = true;
+            }
+        }
+
+        if(existsGrade1 && existsGrade3 && existsGrade5){
+            for(VRImage vrImage : vrImages){
+                if(vrImage.getGrade().toInt() == 1){
+                    sortedVRImages.set(1,vrImage);
+                }
+                if(vrImage.getGrade().toInt() == 3){
+                    sortedVRImages.set(2,vrImage);
+                }
+                if(vrImage.getGrade().toInt() == 5){
+                    sortedVRImages.set(0,vrImage);
+                }
+            }
+        }
+
+        return sortedVRImages;
     }
 }

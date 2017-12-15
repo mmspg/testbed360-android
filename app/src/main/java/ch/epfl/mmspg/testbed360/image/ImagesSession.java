@@ -75,7 +75,7 @@ public class ImagesSession {
         this.sessionDir = sessionDir;
         //We init the training images here
         this.id = id;
-        List<VRImage> vrImgs = ImageUtils.distinctShuffle(ImageUtils.loadVRImages(context, sessionDir, VRScene.MODE_TRAINING));
+        List<VRImage> vrImgs = ImageUtils.sortTrainingPictures(ImageUtils.loadVRImages(context, sessionDir, VRScene.MODE_TRAINING));
         Collections.reverse(vrImgs); // we reverse here as it will be inverted in the stack after
         trainingImages.addAll(vrImgs);
 

@@ -33,7 +33,6 @@ public class VRMenu extends RectangularPrism implements VRUI {
 
     public VRMenu() {
         super(0, 0, 0);
-        //TODO implement automatic height compensation when adding buttons
         this.distance = STANDARD_DISTANCE;
         setPosition(new Vector3(0, 2, -distance));
 

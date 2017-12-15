@@ -27,8 +27,6 @@ import ch.epfl.mmspg.testbed360.image.VRImage;
  */
 
 public final class VRMenuFactory {
-
-    //TODO remove or set false this in production, only for debugging
     private final static boolean RENDER_FPS = false;
 
     private VRMenuFactory() {
@@ -91,7 +89,6 @@ public final class VRMenuFactory {
                 @Override
                 public Object call() throws Exception {
                     text.scrollUp();
-                    //TODO implement way to disable button
                     scrollUpButton.setEnabled(text.canScrollUp());
                     scrollDownButton.setEnabled(text.canScrollDown());
                     return null;
