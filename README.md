@@ -1,6 +1,7 @@
 # Testbed 360
 A Testbed for Subjective Evaluation of Omnidirectional Visual Content - Android version.
 
+This software was developed during a semester project in MMSPG, EPFL by [LM. Garret](https://github.com/lmgarret).
 Please see the original (iOS) version of testbed360 here: https://github.com/mmspg/testbed360.
 
 If you use this software in your research please cite MMSPG's paper:
